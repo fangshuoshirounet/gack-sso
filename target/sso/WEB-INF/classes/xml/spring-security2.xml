@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oauth2="http://www.springframework.org/schema/security/oauth2"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	 http://www.springframework.org/schema/beans/spring-beans.xsd
+	  http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.0.xsd
+  http://www.springframework.org/schema/mvc
+   http://www.springframework.org/schema/mvc/spring-mvc.xsd 
+   http://www.springframework.org/schema/security
+    http://www.springframework.org/schema/security/spring-security.xsd
+     http://www.springframework.org/schema/security/oauth2
+       http://www.springframework.org/schema/security/spring-security-oauth2.xsd">
+
+	<!-- token查询操作相关 -->
+	<bean id="tokenService"
+		class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
+		<property name="tokenStore" ref="tokenStore" />
+		<property name="supportRefreshToken" value="true" />
+		<property name="clientDetailsService" ref="clientDetailsService" />
+	</bean>
+	<bean id="tokenStore"
+		class="org.springframework.security.oauth2.provider.token.store.JdbcTokenStore">
+		<constructor-arg index="0" ref="dataSource"></constructor-arg>
+	</bean>
+	<!-- token查询操作相关结束 -->
+
+	<!-- 第三方client端信息查询配置 -->
+	<bean id="clientDetailsService"
+		class="org.springframework.security.oauth2.provider.client.JdbcClientDetailsService">
+		<constructor-arg index="0" ref="dataSource" />
+	</bean>
+
+	<!-- 授权code获取 -->
+	<bean id="authorizationCodeServices"
+		class="org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices">
+		<constructor-arg index="0" ref="dataSource" />
+	</bean>
+
+	<!-- 客户端授权处理 -->
+	<bean id="oauthUserApprovalHandler"
+		class="org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler">
+	</bean>
+
+	<!-- 客户端授权 -->
+	<security:authentication-manager id="clientAuthenticationManager">
+		<security:authentication-provider
+			user-service-ref="clientUserDetailsService">
+		</security:authentication-provider>
+	</security:authentication-manager>
+	<bean id="clientUserDetailsService"
+		class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+		<constructor-arg index="0" ref="clientDetailsService"></constructor-arg>
+	</bean>
+
+	<!-- 用户授权 -->
+	<security:authentication-manager alias="authenticationManager">
+		<security:authentication-provider
+			user-service-ref="userService">
+			<security:password-encoder hash="md5" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+	<bean id="userService" class="citic.gack.web.sso.oauth2.GackUserDetailsService" />
+
+	<!-- oauth2认证 -->
+	<oauth2:authorization-server
+		client-details-service-ref="clientDetailsService" token-services-ref="tokenService">
+		<oauth2:authorization-code
+			authorization-code-services-ref="authorizationCodeServices" />
+		<oauth2:refresh-token />
+		<oauth2:password />
+	</oauth2:authorization-server>
+
+	<bean id="accessDefinedHandler"
+		class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
+	<bean id="oauth2ClientAuthenticationEntryPoint"
+		class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint"></bean>
+	<bean id="clientCredentialsTokenEndpointFilter"
+		class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
+		<property name="authenticationManager" ref="clientAuthenticationManager" />
+	</bean>
+
+	<!-- 不明白为什么要把这个添加进来，好无辜 -->
+	<security:http pattern="/oauth/token" create-session="stateless"
+		authentication-manager-ref="clientAuthenticationManager"
+		use-expressions="false">
+		<security:intercept-url pattern="/oauth/token"
+			access="IS_AUTHENTICATED_FULLY" />
+		<security:anonymous enabled="false" />
+		<security:http-basic entry-point-ref="oauth2ClientAuthenticationEntryPoint" />
+		<security:custom-filter ref="clientCredentialsTokenEndpointFilter"
+			before="BASIC_AUTH_FILTER" />
+		<security:access-denied-handler ref="accessDefinedHandler" />
+		<security:csrf disabled="true" />
+	</security:http>
+
+	<!-- 资源服务保护开始 -->
+	<!--这个resource-server的用处在于，之后会作为一个custom-filter加到Spring Security Filter 
+		Chain当中的。当第三方client尝试访问受限资源时，该filter会对client信息和其携带过来的access_token进行校验 ，校验通过之后才能拿到资源 -->
+	<oauth2:resource-server id="userResourceServerFilter"
+		resource-id="r_users" token-services-ref="tokenService" />
+	<!-- entry-point-ref:访问入口，如果认证失败，则交由入口处理 access-decision-manager-ref：指定了自定义的访问策略管理器。当系统角色名的前缀不是默认的ROLE_时，需要自定义访问策略管理器。 -->
+	<security:http pattern="/users/**" create-session="never"
+		use-expressions="false" access-decision-manager-ref="accessDecisionManager"
+		entry-point-ref="oauth2ClientAuthenticationEntryPoint">
+		<!-- 不允许匿名 -->
+		<security:anonymous enabled="false" />
+		<!-- 拦截器设置，访问资源需要有ROLE_USER的权限 -->
+		<security:intercept-url pattern="/users/**"
+			access="ROLE_USER" />
+		<!-- 自定义过滤器 -->
+		<security:custom-filter ref="userResourceServerFilter"
+			before="PRE_AUTH_FILTER" />
+		<!-- 权限审核失败处理 -->
+		<security:access-denied-handler ref="accessDefinedHandler" />
+		<security:csrf disabled="true" />
+	</security:http>
+	<!-- spring-security3提供了几个已经实现好的访问决策器，其抽象类为AbstractAccessDecisionManager，它使用投票机制(AccessDecisionVoter)来确定用户有没有权限访问某资源，其实现类有三个： 
+		AffirmativeBased：只要有一个投票器通过即审核通过 ConsensusBased：只有当赞成票>反对票时 审核才会通过 UnanimousBased：只要有一个投票器反对，审核就不通过 -->
+	<bean id="accessDecisionManager" class="org.springframework.security.access.vote.UnanimousBased">
+		<constructor-arg index="0">
+			<list>
+				<!-- OAuth2.0当中还有一个SCOPE的概念，相当于用户对client授权访问自己拥有的某一资源时，可以指定其范围，比如read(只读), 
+					write(可写)，或者get_user_info(获取用户信息), share(分享)等等。一开始没有很好的理解，后来看到别的项目的配置， 感觉可以这样想：如果resource对应的是工程的Controller的话，那么scope可以理解为Controller当中的方法，类似于user.getUserInfo()或者user.addShare()等 -->
+				<bean class="org.springframework.security.oauth2.provider.vote.ScopeVoter" />
+				<!-- 权限验证器 -->
+				<bean class="org.springframework.security.access.vote.RoleVoter" />
+				<!-- 身份认证 -->
+				<bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
+			</list>
+		</constructor-arg>
+	</bean>
+	<!-- 资源服务保护结束 -->
+</beans>

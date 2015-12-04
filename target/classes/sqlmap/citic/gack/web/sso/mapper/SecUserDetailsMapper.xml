@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.web.sso.mapper.SecUserDetailsMapper">
+
+	<select id="queryById" resultType="citic.gack.web.sso.entity.SecUserDetails"
+		parameterType="citic.gack.web.sso.entity.SecUserDetails">
+		select
+		user_id,`name`,phone_num,email,`password`,regst_date,last_login_date,wechat,microblog,source,enterprise_id,picture_mp,picture_web,order_type,employee_id,`status`,access_token
+		from sec_user_details where user_id=#{userId}
+	</select>
+</mapper>
