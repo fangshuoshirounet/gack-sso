@@ -36,7 +36,6 @@
 	<http pattern="/users/*" create-session="stateless"
 		access-decision-manager-ref="accessDecisionManager" entry-point-ref="oauthAuthenticationEntryPoint"
 		xmlns="http://www.springframework.org/schema/security">
-		<intercept-url pattern="/user/*" access="ROLE_USER" />
 		<anonymous enabled="false" />
 		<!-- 拦截器设置，访问资源需要有ROLE_USER的权限 -->
 		<intercept-url pattern="/users/**" access="ROLE_USER" />
