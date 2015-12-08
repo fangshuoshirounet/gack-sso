@@ -1,0 +1,27 @@
+package citic.gack.web.sso.base;
+
+import java.io.Serializable;
+
+public class BaseDTO<T extends BaseModel> implements Serializable {
+
+	private T entity;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	public BaseDTO(T t){
+		this.entity = t;
+	}
+	
+	public BaseDTO(){
+	}
+	
+	public T getEntity(){
+		return entity;
+	}
+	
+	public void setEntity(T entity){
+		this.entity = entity;
+	}
+}

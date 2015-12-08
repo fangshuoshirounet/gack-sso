@@ -4,14 +4,20 @@ import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
 
-import citic.gack.web.sso.entity.SecUserDetails;
+import citic.gack.web.sso.entity.SecUser;
 
-public class UserDetails  implements org.springframework.security.core.userdetails.UserDetails {
+public class SecUserDetails  implements org.springframework.security.core.userdetails.UserDetails {
 	
-	private SecUserDetails secUserDetail;
+	private SecUser secUserDetail;
+	private int userId;
 	
-	public void setSecUserDetail(SecUserDetails secUserDetail) {
+	public void setSecUserDetail(SecUser secUserDetail) {
 		this.secUserDetail = secUserDetail;
+		this.userId = secUserDetail.getUserId();
+	}
+
+	public int getUserId() {
+		return userId;
 	}
 
 	/**
