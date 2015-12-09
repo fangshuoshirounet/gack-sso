@@ -1,0 +1,36 @@
+
+.toggle-fieldset{
+	border:#CCCCCC solid 1px;
+	margin:5px;
+	padding:5px;
+	-moz-border-radius: 5px;
+	-khtml-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	margin-left: 12px;
+	margin-right: 12px;
+}
+		
+.toggle-fieldset legend{
+	font-weight : bold;
+	cursor : hand;
+	cursor : pointer;
+}
+
+.t-tool {
+	background: url("../images/tip-button.gif") no-repeat scroll 0 0 transparent;
+	cursor: pointer;
+	float: left;
+	height: 15px;
+	margin-left: 2px;
+	overflow: hidden;
+	width: 15px;
+}
+
+.t-tool-toggle-open {
+	background-position: 0 -75px;
+}
+		
+.t-tool-toggle-close {
+		    background-position: 0 -60px;
+}

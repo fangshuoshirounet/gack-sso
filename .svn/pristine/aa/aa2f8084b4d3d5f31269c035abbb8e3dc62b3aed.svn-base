@@ -1,0 +1,154 @@
+
+@charset "utf-8";
+/* css通用重置 begin */
+html {
+	color:#666666;
+	background:#f9f9f9;
+}
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td {
+	margin:0px;
+	padding:0px;
+	font:12px '微软雅黑';
+}
+table {
+	border-collapse:collapse;
+	border-spacing:0;
+}
+fieldset,img {
+	border:0;
+	vertical-align:top;
+}
+address,caption,cite,code,dfn,em,th,var {
+	font-style:normal;
+	font-weight:normal;
+}
+ol,ul {
+	list-style:none;
+}
+caption,th {
+	text-align:left;
+}
+h1,h2,h3,h4,h5,h6 {
+	font-size:100%;
+	font-weight:normal;
+}
+pre {
+	white-space:pre;
+	white-space:pre-wrap;
+	word-wrap:break-word;
+}
+sub,sup {
+	font-size:75%;
+	line-height:0;
+	position:relative;
+	vertical-align:baseline;
+}
+sup {
+	top:-0.5em;
+}
+sub {
+	bottom:-0.25em;
+}
+button,input,select,textarea {
+	font-family:inherit;
+	font-size:inherit;
+	font-weight:inherit;
+	vertical-align:baseline;
+	*vertical-align:middle;
+}
+button,input {
+	line-height:normal;
+}
+button,input[type="button"],input[type="reset"],input[type="submit"] {
+	cursor:pointer;
+	-webkit-appearance:button;
+	*overflow:visible;
+}
+input[type="checkbox"],input[type="radio"] {
+	box-sizing:border-box;
+	padding:0;
+	*height:13px;
+	*width:13px;
+}
+input[type="hidden"] {
+	display:none!important
+}
+textarea {
+	overflow:auto;
+	vertical-align:top;
+	resize:none;
+}
+/* css通用重置 end */
+
+/* 全局样式 begin */
+body {
+	height:100%;
+	font:12px '微软雅黑';
+	color:#666666;
+}
+/*select,input,button,textarea {
+	font:100% arial,helvetica,clean;
+}*/
+table {
+	font-size:inherit;
+	font:100%;
+}
+small {
+	font-size:75%;
+}
+/* 全局样式 end */
+
+/* 网站全局样式 begin */
+a{
+	color:#666;
+	text-decoration:none;
+	bblr:expression(this.onFocus=this.blur());/*IE使用*/
+	outline-style:none;/*FF使用*/ 
+}
+a:hover{
+	text-decoration:underline;
+}
+
+
+
+.header{ background:#01c0f1; width:100%; height:60px; line-height:60px;}
+.header a{ margin:11px 0 0 20px; display:inline-block;}
+.header p{ float:left;}
+.header .p_font{ line-height:60px; color:#fff; font-size:24px; margin-left:20px;}
+.header_right{ float:right; line-height:60px; margin-right:20px}
+.header_right li{ float:left; line-height:60px; margin-left:20px; color:#fff;}
+.header_right .tc{ font-size:14px;}
+.header_right .tc i{ background:url(../images/tuichu.png) no-repeat; width:12px; height:13px; display:block; float:left; margin-top:23px; margin:23px 4px 0 0;}
+.header_right .mm a{ margin:0; font-size:14px; color:#fff; }
+.header_right .mm i{ background:url(../images/mima.png) no-repeat; font-size:14px; width:78px; height:25px; display:block; margin-top:18px; line-height:23px; text-align:center; font-style:normal; padding-left:12px;}
+.nav_menu{ display:none; border-top:2px solid #01c0f1; color:#01c0f1; padding:10px 0 10px 0; border-bottom:1px solid #eaeaea}
+.nav_menu li a{ padding-right:42px; text-decoration:blink; color:#01c0f1} 
+.nav_menu a:hover{ background:#01c0f1; color:#fff;}
+.nav_menu .yd_back{ background:#01c0f1; display:block; color:#fff; }
+.main_left li .back{ background:#f6f6f6}
+.main_left{ width:190px; border:1px solid #e6e6e6; background:#fff; text-align:right}
+.main_left li .nav_a{border-bottom:1px solid #eaeaea; font-size:14px;}
+.main_left li a{ display:block; height:45px; line-height:45px; text-decoration:blink;}
+.nav_left .v{background: url("../images/vicon.png") no-repeat 0 -11px;  display:block; float: right; height:5px; overflow: hidden; width:10px; margin-left:16px; margin-top:20px; margin-right:16px;}
+.nav_left .v01{background-position:0 0;}
+.back_h{ background:red}
+.nav_left .v02 { background-position: 0 -11px; }
+
+
+
+/*登录页面	start*/
+.login_warp{ background:url(../images/login_back.jpg) no-repeat center 50%; width:100%; height:800px;}
+#login_box { height: 800px; left: 20px; position: absolute; top: 30px; width:100%;}
+.login{ width:500px; margin:249px auto 0;}
+.login li{ height:40px; margin-bottom:20px}
+.login input{ width:352px; height:30px; line-height:30px; border:none; margin-left:111px; font-size:16px; color:#b6b6b6; margin-top:5px; outline:medium;}
+.login .yzm { margin-bottom:10px}
+.login .yzm input{ width:144px; height:30px; margin-left:38px; text-align:center; }
+.login .yzm p{ float:left; margin-right:10px; line-height:37px;}
+.login .yzm p a{ color:#fff; text-decoration:underline; margin-left:11px;font-size:16px;}
+.login .mm{height:15px; margin-bottom:10px;color:#F6F6F6;text-align:center;font-size:14px;} 
+.login .mm span{color:#F6F6F6;text-align:center;font-size:14px;}
+.login .login_btn { text-align:center; line-height:45px; margin-top:-6px}
+.login .login_btn input{ background:url(../images/login_btn.png) no-repeat; width:430px; height:45px; margin-left:0px; color:#fff; font-size:20px;}
+.login .log_bottom{ text-align:center; font-size:14px; color:#999999; margin-top:87px;}
+/*登录页面	end*/

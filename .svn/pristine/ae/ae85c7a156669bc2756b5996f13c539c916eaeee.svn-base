@@ -1,0 +1,559 @@
+package citic.gack.sso.admin.controller;
+
+import static citic.gack.sso.admin.security.SecurityManager.ADMIN_ROLE_CODE;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import citic.gack.sso.admin.dto.MenuCatalogDTO;
+import citic.gack.sso.admin.dto.OperatePermissionDTO;
+import citic.gack.sso.admin.dto.RoleDTO;
+import citic.gack.sso.admin.dto.RolePermissionDTO;
+import citic.gack.sso.admin.dto.SysUserDTO;
+import citic.gack.sso.admin.security.SecurityManager;
+import citic.gack.sso.admin.service.MenuCatalogService;
+import citic.gack.sso.admin.service.MenuService;
+import citic.gack.sso.admin.service.RolePermissionService;
+import citic.gack.sso.admin.service.RoleService;
+import citic.gack.sso.base.BaseController;
+import citic.gack.sso.base.PageInfo;
+import citic.gack.sso.base.exception.SysException;
+import citic.gack.sso.entity.SysMenu;
+import citic.gack.sso.entity.SysMenuCatalog;
+import citic.gack.sso.entity.SysRole;
+import citic.gack.sso.entity.SysUser;
+import net.sf.json.JSONArray;
+
+@Controller
+@RequestMapping("/admin/security/rolepermission")
+public class RolePermissionController extends BaseController<RolePermissionDTO> {
+
+	private static final String BUSINESS_PATH = "/admin/security/rolepermission";
+	private static final Logger logger = LoggerFactory.getLogger(RolePermissionController.class);
+
+	@Autowired
+	private RoleService roleService;
+	@Autowired
+	private MenuService menuService;
+	@Autowired
+	private RolePermissionService rolePermissionService;
+	@Autowired
+	private MenuCatalogService menuCatalogService;
+
+	/**
+	 * 返回首页
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.GET)
+	public ModelAndView index(HttpServletRequest request) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		String type = request.getParameter("type");
+		mv.addObject("type", type);
+		mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_INDEX));
+		return mv;
+	}
+
+	@RequestMapping("/permission")
+	public ModelAndView permission(HttpServletRequest request, RolePermissionDTO model, String permissionType) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		try {
+			model.setRoleName(java.net.URLDecoder.decode(model.getRoleName(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+		}
+		mv.addObject("model", model);
+		if (StringUtils.isBlank(model.getRoleId()) || StringUtils.isBlank(permissionType)) {
+			mv.setViewName(getMappingUrl(BUSINESS_PATH, "index"));
+		} else {
+			if ("menu".equals(permissionType)) {
+				initRoleMenuPermission(request, model);
+				mv.setViewName(getMappingUrl(BUSINESS_PATH, "menu"));
+			} else {
+				initRoleMenuCatalogPermission(request, model);
+				mv.setViewName(getMappingUrl(BUSINESS_PATH, "menucatalog"));
+			}
+		}
+		return mv;
+	}
+
+	@RequestMapping(value = "/{id}/edit", method = RequestMethod.GET, params = "t=true")
+	public ModelAndView edit(HttpServletRequest request, RolePermissionDTO model, @PathVariable("id") String id, String permissionType) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		if (StringUtils.isBlank(id) || StringUtils.isBlank(permissionType)) {
+			mv.setViewName(getMappingUrl(BUSINESS_PATH, "index"));
+		} else {
+			if ("menu".equals(permissionType)) {
+				initRoleMenuPermission(request, model);
+				mv.setViewName(getMappingUrl(BUSINESS_PATH, "menu"));
+			} else {
+				initRoleMenuCatalogPermission(request, model);
+				mv.setViewName(getMappingUrl(BUSINESS_PATH, "menucatalog"));
+			}
+		}
+		return mv;
+	}
+
+	@RequestMapping("/searchmenu")
+	public void searchmenu(HttpServletResponse response, RolePermissionDTO model) {
+		try {
+			initModelParams(model);
+			OperatePermissionDTO operatePermissionDTO = rolePermissionService.searchmenu(model);
+			String operatePermissionDTOJson = JSONArray.fromObject(operatePermissionDTO).toString();
+			try {
+				response.setContentType("text/plain;charset=UTF-8");
+				PrintWriter writer = response.getWriter();
+				writer.write(operatePermissionDTOJson);
+				writer.close();
+			} catch (IOException e) {
+				logger.error("", e);
+			}
+		} catch (SysException e) {
+
+		}
+	}
+
+	@RequestMapping("/searchmenucatalog")
+	public void searchmenucatalog(HttpServletResponse response, RolePermissionDTO model) {
+		try {
+			initModelParams(model);
+			OperatePermissionDTO operatePermissionDTO = rolePermissionService.searchmenucatalog(model);
+			String operatePermissionDTOJson = JSONArray.fromObject(operatePermissionDTO).toString();
+			try {
+				response.setContentType("text/plain;charset=UTF-8");
+				PrintWriter writer = response.getWriter();
+				writer.write(operatePermissionDTOJson);
+				writer.close();
+			} catch (IOException e) {
+				logger.error("", e);
+			}
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+	}
+
+	@RequestMapping("/menuselect")
+	public ModelAndView menuselect(RolePermissionDTO model) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName(getMappingUrl(BUSINESS_PATH, "menuselect"));
+		if (model != null && StringUtils.isNotBlank(model.getMenuId())) {
+			List<RolePermissionDTO> modelList;
+			try {
+				modelList = rolePermissionService.queryMenuOperatePermission(model);
+				mv.addObject("rolePermissionList", modelList);
+			} catch (Exception e) {
+				logger.error("", e);
+			}
+		} else {
+			throw new SysException();
+		}
+		return mv;
+	}
+
+	@RequestMapping(value = "/saveMenuOperatePermission", method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> saveMenuOperatePermission(HttpServletRequest request, RolePermissionDTO model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			SysUser sysUser = SecurityManager.getSessionUser();
+			String userId = sysUser.getSysUserId();
+			String userName = sysUser.getName();
+			model.setCreator(userName);
+			model.setCreatorId(userId);
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("model", model);
+			String[] menuIds = request.getParameterValues("menuIds");
+			map.put("menuIds", menuIds);
+			if (menuIds != null && menuIds.length > 0) {
+				String[] menuoCatalogPerations;
+				for (String catalogId : menuIds) {
+					menuoCatalogPerations = request.getParameterValues(catalogId);
+					map.put(catalogId, menuoCatalogPerations);
+				}
+			}
+			String[] menuoPerations = request.getParameterValues("menuoPerations");
+			map.put("menuoPerations", menuoPerations);
+			rolePermissionService.saveMenuOperatePermission(map);
+			appInfo.put("message", MESSAGE_CREATE);
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_CREATE_FAIL);
+		}
+		return appInfo;
+	}
+
+	@RequestMapping(value = "/saveMenuCatalogOperatePermission", method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> saveMenuCatalogOperatePermission(HttpServletRequest request, RolePermissionDTO model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("model", model);
+			String[] menuCatalogIds = request.getParameterValues("menuCatalogIds");
+			if (menuCatalogIds != null && menuCatalogIds.length > 0) {
+				String[] menuoCatalogPerations;
+				for (String catalogId : menuCatalogIds) {
+					menuoCatalogPerations = request.getParameterValues(catalogId);
+					if (StringUtils.isNotBlank(menuoCatalogPerations[0])) {
+						map.put(catalogId, menuoCatalogPerations);
+					}
+				}
+			}
+			map.put("menuCatalogIds", menuCatalogIds);
+			rolePermissionService.saveMenuCatalogOperatePermission(map);
+			appInfo.put("message", MESSAGE_CREATE);
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_CREATE_FAIL);
+		}
+		return appInfo;
+	}
+
+	@RequestMapping("/rolejson")
+	public void rolejson(HttpServletResponse response) throws SysException {
+		response.setContentType("text/plain;charset=UTF-8");
+		try {
+			RoleDTO role = new RoleDTO();
+			role.setSts("A");
+			List<RoleDTO> rootRoles = roleService.queryList(role);
+			// 构造所有权限
+			List<Object> jsonList = new ArrayList<Object>();
+			List<Object> list = new ArrayList<Object>();
+			if (rootRoles != null && rootRoles.size() > 0) {
+				Map<String, Object> parentMap = new HashMap<String, Object>();
+				parentMap.put("id", "");
+				parentMap.put("text", "系统角色");
+				parentMap.put("state", "closed");
+				Map<String, Object> amap = null;
+				for (SysRole r : rootRoles) {
+					amap = new HashMap<String, Object>();
+					String id = r.getRoleId();
+					String name = r.getRoleName();
+					amap.put("state", "open");
+					amap.put("text", name);
+					amap.put("id", id);
+					list.add(amap);
+				}
+				parentMap.put("children", list);
+				jsonList.add(parentMap);
+			}
+			JSONArray jo = JSONArray.fromObject(jsonList);
+			String rs = jo.toString();
+			try {
+				PrintWriter writer = response.getWriter();
+				writer.write(rs);
+				writer.close();
+			} catch (IOException e) {
+				logger.error("", e);
+			}
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+	}
+
+	@RequestMapping("/menujson")
+	public void menujson(HttpServletResponse response, String id) throws SysException {
+		response.setContentType("text/plain;charset=UTF-8");
+		try {
+			SysMenu menu = new SysMenu();
+			menu.setSts("A");
+			if (StringUtils.isNotBlank(id)) {
+				menu.setMenuCatalogId(id);
+			}
+			List<SysMenu> rootMenus = menuService.queryList(menu);
+			// 构造所有权限
+			List<Object> jsonList = new ArrayList<Object>();
+			if (rootMenus != null && rootMenus.size() > 0) {
+				Map<String, Object> amap = null;
+				for (SysMenu m : rootMenus) {
+					amap = new HashMap<String, Object>();
+					id = m.getMenuId();
+					String name = m.getMenuName();
+					amap.put("state", "open");
+					amap.put("text", name);
+					amap.put("id", id);
+					jsonList.add(amap);
+				}
+			}
+			JSONArray jo = JSONArray.fromObject(jsonList);
+			String rs = jo.toString();
+			try {
+				PrintWriter writer = response.getWriter();
+				writer.write(rs);
+				writer.close();
+			} catch (IOException e) {
+				logger.error("", e);
+			}
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+	}
+
+	@RequestMapping("/queryRoleList")
+	public @ResponseBody
+	PageInfo queryRoleList(HttpServletRequest request) throws SysException {
+		PageInfo pageInfo = null;
+		try {
+			pageInfo = roleService.queryListByPage(new RoleDTO(), getPageInfo(request));
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return pageInfo;
+	}
+
+	@RequestMapping("/roleView")
+	public String roleView(HttpServletRequest request, RolePermissionDTO model) {
+		request.setAttribute("model", model);
+		return getMappingUrl(BUSINESS_PATH, "roleview");
+	}
+
+	/**
+	 * 查看角色功能视图
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping("/rolepermissionview")
+	public @ResponseBody
+	PageInfo rolepermissionview(HttpServletRequest request, RolePermissionDTO model) throws SysException {
+		PageInfo pageInfo = null;
+		try {
+			pageInfo = rolePermissionService.searchRoleView(model, getPageInfo(request));
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return pageInfo;
+	}
+
+	/**
+	 * 菜单功能视图
+	 */
+	@RequestMapping("/treeViewjson")
+	public void treeViewjson(HttpServletRequest request, HttpServletResponse response, RolePermissionDTO model) throws SysException {
+		response.setContentType("text/plain;charset=UTF-8");
+		{
+			try {
+				MenuCatalogDTO menuCatalog = new MenuCatalogDTO();
+				String id = request.getParameter("id");
+				if (StringUtils.isNotBlank(id)) {
+					menuCatalog.setMenuCatalogId(id);
+				}
+				List<MenuCatalogDTO> list = menuCatalogService.queryList(menuCatalog);
+				List<MenuCatalogDTO> rootAreas = new ArrayList<MenuCatalogDTO>();
+				rootAreas.addAll(list);
+				// 构造所有权限
+				List<Object> jsonList = new ArrayList<Object>();
+				buildJsonListView(jsonList, rootAreas, 1, model);
+				JSONArray jo = JSONArray.fromObject(jsonList);
+				String rs = jo.toString();
+				try {
+					PrintWriter writer = response.getWriter();
+					writer.write(rs);
+					writer.close();
+				} catch (IOException e) {
+
+				}
+			} catch (SysException e) {
+
+			}
+		}
+	}
+
+	/**
+	 * 菜单目录树
+	 */
+	@RequestMapping("/treejson")
+	public void treejson(HttpServletRequest request, HttpServletResponse response, RolePermissionDTO model) throws SysException {
+		response.setContentType("text/plain;charset=UTF-8");
+		String id = request.getParameter("id");
+		if (StringUtils.isNotBlank(id)) {
+			model.setMenuCatalogId(id);
+		}
+		try {
+			MenuCatalogDTO catalog = new MenuCatalogDTO();
+			catalog.setMenuCatalogId(model.getMenuCatalogId());
+			List<MenuCatalogDTO> list = menuCatalogService.queryList(catalog);
+			List<MenuCatalogDTO> rootAreas = new ArrayList<MenuCatalogDTO>();
+			rootAreas.addAll(list);
+			// 构造所有权限
+			List<Object> jsonList = new ArrayList<Object>();
+			buildJsonList(jsonList, rootAreas, 1);
+			JSONArray jo = JSONArray.fromObject(jsonList);
+			String rs = jo.toString();
+			try {
+				PrintWriter writer = response.getWriter();
+				writer.write(rs);
+				writer.close();
+			} catch (IOException e) {
+
+			}
+		} catch (SysException e) {
+
+		}
+	}
+
+	private void buildJsonList(List<Object> jsonList, List<MenuCatalogDTO> datas, int level) throws SysException {
+		if (datas == null) {
+			return;
+		}
+		try {
+			for (MenuCatalogDTO obj : datas) {
+				String id = obj.getMenuCatalogId();
+				String text = obj.getCatalogName();
+				Map<String, Object> amap = new HashMap<String, Object>();
+				List<MenuCatalogDTO> children = menuCatalogService.queryList(obj);
+				if (children != null && children.size() > 0) {
+					amap.put("state", "closed");
+					amap.put("attributes", "true");
+				} else {
+					amap.put("state", "open");
+					amap.put("attributes", "false");
+				}
+				amap.put("text", text);
+				amap.put("id", id);
+				jsonList.add(amap);
+			}
+		} catch (SysException e) {
+
+		}
+	}
+
+	/**
+	 * 授权之前验证是否是admin
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping("/validateadmin")
+	public @ResponseBody
+	Map<String, Object> validateadmin(String id) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			if (StringUtils.isNotBlank(id)) {
+				String[] uniKey = id.split("-");
+				if (uniKey != null && uniKey.length > 0) {
+					RoleDTO role = null;
+					for (String string : uniKey) {
+						String[] ids = string.split(",");
+						role = new RoleDTO();
+						role.setRoleId(ids[0]);
+						role = roleService.queryBean(role);
+						if (role == null) {
+							String errorMsg = "您选择" + ids[0] + "选项不存在，可能已经删除，请选择其它选项。";
+							appInfo.put("message", errorMsg);
+							break;
+						} else {
+							if (ADMIN_ROLE_CODE.equals(role.getRoleCode())) {
+								String errorMsg = "您选择" + role.getRoleName() + "选项是admin，已经拥有所有权限，不能授权，请选择其它选项。";
+								appInfo.put("message", errorMsg);
+								break;
+							}
+						}
+					}
+				}
+			}
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return appInfo;
+	}
+
+	private void buildJsonListView(List<Object> jsonList, List<MenuCatalogDTO> datas, int level, RolePermissionDTO model) throws SysException {
+		if (datas == null) {
+			return;
+		}
+		try {
+			for (MenuCatalogDTO obj : datas) {
+				String id = obj.getMenuCatalogId();
+				String text = obj.getCatalogName();
+				Map<String, Object> amap = new HashMap<String, Object>();
+				List<MenuCatalogDTO> children = menuCatalogService.queryList(obj);
+				if (children != null && children.size() > 0) {
+					amap.put("state", "closed");
+					amap.put("attributes", "true");
+				} else {
+					amap.put("state", "open");
+					amap.put("attributes", "false");
+				}
+				RolePermissionDTO rolePerDTO = new RolePermissionDTO();
+				rolePerDTO.setMenuCatalogId(id);
+				rolePerDTO.setRoleId(model.getRoleId());
+				String strPermiss = rolePermissionService.rolePermissionView(rolePerDTO);
+				String flagContent = "";
+				if (!StringUtils.isBlank(strPermiss)) {
+					flagContent = "[" + rolePermissionService.rolePermissionView(rolePerDTO) + "]";
+				}
+				amap.put("text", text + flagContent);
+				amap.put("id", id);
+				jsonList.add(amap);
+			}
+		} catch (SysException e) {
+
+		}
+	}
+
+	private void initRoleMenuPermission(HttpServletRequest request, RolePermissionDTO model) throws SysException {
+		try {
+			String catalog = JSONArray.fromObject(SecurityManager.getSessionUser().getMenuCatalog()).toString();
+			List<SysMenu> menus = SecurityManager.getSessionUser().getMenu();
+			String menu = JSONArray.fromObject(menus).toString();
+			List<OperatePermissionDTO> roleMenus = rolePermissionService.initRoleMenuPermission(model);
+			String roleMenuJson = JSONArray.fromObject(roleMenus).toString();
+			request.setAttribute("catalog", catalog);
+			request.setAttribute("menu", menu);
+			request.setAttribute("roleMenuJson", roleMenuJson);
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+	}
+
+	private void initRoleMenuCatalogPermission(HttpServletRequest request, RolePermissionDTO model) throws SysException {
+		try {
+			SysUserDTO sysUser = SecurityManager.getSessionUser();
+			List<SysMenuCatalog> menuCatalogsList = sysUser.getMenuCatalog();
+			Map<String, OperatePermissionDTO> currentUserMenuMaps = sysUser.getCurrent_user_menucatalog_maps();
+			List<SysMenuCatalog> catalogs = new ArrayList<SysMenuCatalog>();
+			for (SysMenuCatalog menuCatalog : menuCatalogsList) {
+				if (currentUserMenuMaps.containsKey(menuCatalog.getMenuCatalogId())) {
+					catalogs.add(menuCatalog);
+				}
+			}
+			List<OperatePermissionDTO> roleMenuCatalogs = rolePermissionService.initRoleMenuCatalogPermission(model);
+			String catalog = JSONArray.fromObject(catalogs).toString();
+			String roleMenuCatalogJson = JSONArray.fromObject(roleMenuCatalogs).toString();
+			request.setAttribute("catalog", catalog);
+			request.setAttribute("roleMenuCatalogJson", roleMenuCatalogJson);
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+	}
+
+	private void initModelParams(RolePermissionDTO model) {
+		if (StringUtils.isNotBlank(model.getMenuCatalogId())) {
+			String[] catalogIds = model.getMenuCatalogId().split(",");
+			model.setMenuCatalogId(catalogIds[0]);
+		}
+		if (StringUtils.isNotBlank(model.getRoleId())) {
+			String[] roleIds = model.getRoleId().split(",");
+			model.setRoleId(roleIds[0]);
+		}
+	}
+
+}

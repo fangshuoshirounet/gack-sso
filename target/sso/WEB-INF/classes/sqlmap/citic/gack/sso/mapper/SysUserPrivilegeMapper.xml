@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.SysUserPrivilegeMapper">
+	<select id="queryListByPage" resultType="citic.gack.sso.entity.SysUserPrivilege"
+		parameterType="citic.gack.sso.entity.SysUserPrivilege">
+		select PRIVILEGE_ID,operator_id,creator_id, SYS_USER_ID, MENU_CATALOG_ID, MENU_ID, STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from SYS_USER_PRIVILEGE
+		where 1=1 AND STS='A'
+		<if test="page.sortName!=null">
+			order by ${page.sortNameName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortNameOrder}
+		</if>
+	</select>
+
+
+	<insert id="save" parameterType="citic.gack.sso.entity.SysUserPrivilege">
+		insert into SYS_USER_PRIVILEGE (PRIVILEGE_ID,operator_id,creator_id, SYS_USER_ID, MENU_CATALOG_ID, MENU_ID, STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR)
+		values (#{privilegeId},#{creatorId},#{operatorId} ,
+		#{sysUserId} ,
+		#{menuCatalogId,jdbcType=VARCHAR} ,
+		#{menuId,jdbcType=VARCHAR},
+		#{sts},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator})
+	</insert> 
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysUserPrivilege">
+		update SYS_USER_PRIVILEGE
+		set SYS_USER_ID=#{sysUserId},operator_id=#{operatorId} ,
+		MENU_CATALOG_ID=#{menuCatalogId,jdbcType=VARCHAR} ,
+		MENU_ID=#{menuId,jdbcType=VARCHAR} ,
+		STS=#{sts} ,
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where
+		PRIVILEGE_ID=#{privilegeId} and  VERSION=#{version}
+	</update>
+
+
+	<update id="deleteById" parameterType="citic.gack.sso.entity.SysUserPrivilege">
+		update SYS_USER_PRIVILEGE set
+		STS=#{sts},operator_id=#{operatorId} ,
+		  OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where
+		PRIVILEGE_ID=#{privilegeId}
+	</update>
+
+	<select id="queryList" resultType="citic.gack.sso.entity.SysUserPrivilege"
+		parameterType="citic.gack.sso.entity.SysUserPrivilege">
+		select PRIVILEGE_ID, SYS_USER_ID, MENU_CATALOG_ID, MENU_ID, STS, date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_USER_PRIVILEGE 
+	</select>
+
+	<select id="queryById" resultType="citic.gack.sso.entity.SysUserPrivilege"
+		parameterType="citic.gack.sso.entity.SysUserPrivilege">
+		select PRIVILEGE_ID,VERSION,operator_id,creator_id, SYS_USER_ID, MENU_CATALOG_ID, MENU_ID, STS, date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_USER_PRIVILEGE where 1=1 and PRIVILEGE_ID=#{privilegeId}
+	</select>
+
+	<select id="queryMenuSysUserPrivilege" resultType="citic.gack.sso.entity.SysUserPrivilege"
+		parameterType="citic.gack.sso.admin.dto.SysUserPermissionDTO">
+		select PRIVILEGE_ID,operator_id,creator_id, SYS_USER_ID, MENU_CATALOG_ID, MENU_ID,
+		STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from
+		SYS_USER_PRIVILEGE where 1=1 AND STS='A' AND MENU_ID is not null
+		<if test="sysUserId !=null and sysUserId !=''">
+			and SYS_USER_ID= #{sysUserId}
+		</if>
+		<if test="menuId !=null and menuId !=''">
+			and MENU_ID = #{menuId}
+		</if> 
+
+	</select>
+	<select id="queryMenuCatalogSysUserPrivilege" resultType="citic.gack.sso.entity.SysUserPrivilege"
+		parameterType="citic.gack.sso.admin.dto.SysUserPermissionDTO">
+		select PRIVILEGE_ID,operator_id,creator_id, SYS_USER_ID, MENU_CATALOG_ID, MENU_ID, STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from SYS_USER_PRIVILEGE
+		where 1=1 AND STS='A' AND MENU_CATALOG_ID is not null
+		<if test="sysUserId !=null and sysUserId !=''">
+			and SYS_USER_ID = #{sysUserId}
+		</if>
+		<if test="menuCatalogId !=null and menuCatalogId !=''">
+			and MENU_CATALOG_ID = #{menuCatalogId}
+		</if> 
+	</select>
+	<select id="queryMenuOrCatalogSysUserPrivilege" resultType="citic.gack.sso.entity.SysUserPrivilege"
+		parameterType="java.lang.String">
+		select PRIVILEGE_ID,operator_id,creator_id, SYS_USER_ID, MENU_CATALOG_ID, MENU_ID, STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from SYS_USER_PRIVILEGE where 1=1 AND STS='A' and SYS_USER_ID =  #{sysUserId}
+	
+	
+		 <choose>  
+        <when test="type!=null and type=='menu'">  
+           and MENU_ID is not null
+        </when>   
+        <otherwise>  
+          and MENU_CATALOG_ID is not null
+        </otherwise>  
+   		 </choose>   
+	</select>
+
+
+</mapper>

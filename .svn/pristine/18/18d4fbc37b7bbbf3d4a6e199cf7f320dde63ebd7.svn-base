@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.web.sso.mapper.SysActionLogMapper">
+
+	<select id="queryListByPage" resultType="citic.gack.web.sso.entity.SysActionLog"
+		parameterType="citic.gack.web.sso.entity.SysActionLog">
+		select action_log_id, action_text, action_time, action_type, menu_id,
+		menu_url, sys_text, sys_user_id,date_format(operate_date,'%Y-%m-%d %H:%i:%s') operate_date ,date_format(create_date,'%Y-%m-%d %H:%i:%s') create_date ,version ,operator,creator,operator_id,creator_id
+		from sys_action_log
+		where 1=1
+		<if test="condition.menuId !=null and condition.menuId != ''">
+			and menu_id=#{condition.menuId}
+		</if>
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if>
+	</select>
+
+	<insert id="save" parameterType="citic.gack.web.sso.entity.SysActionLog">
+		insert into sys_action_log
+		(action_log_id, 
+		action_text, 
+		action_time,
+        action_type,
+        menu_id,
+		menu_url,
+		<if test="sysText!=null and sysText!=''">
+   			sys_text, 
+   		</if> 
+		sys_user_id
+		,create_date,creator,version,operate_date,operator,operator_id,creator_id
+		)
+		values (#{actionLogId}, 
+		#{actionText},
+		str_to_date(#{actionTime},'%Y-%m-%d %H:%i:%s') ,
+		#{actionType},
+		#{menuId},
+		#{menuUrl},
+		<if test="sysText!=null and sysText!=''">
+   			#{sysText}, 
+   		</if> 
+		
+		#{sysUserId}
+		,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},#{creatorId},#{operatorId}
+		)
+	</insert>
+	<select id="queryById" resultType="citic.gack.web.sso.entity.SysActionLog"
+		parameterType="citic.gack.web.sso.entity.SysActionLog">
+		select action_log_id,version, action_text, action_time, action_type, menu_id,
+		menu_url, sys_text, sys_user_id,date_format(operate_date,'%Y-%m-%d %H:%i:%s') operate_date ,date_format(create_date,'%Y-%m-%d %H:%i:%s') create_date,operator,creator,operator_id,creator_id
+		from sys_action_log
+		where  action_log_id=#{actionLogId} 
+	</select>
+</mapper>

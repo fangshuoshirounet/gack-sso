@@ -1,0 +1,97 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle" />
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+		<div class="info-form" data-options="region:'center'">
+			<fieldset>
+				<legend>
+					<fmt:message key="credithc.sys.area.info" bundle="${systemBundle}"></fmt:message>
+				</legend>
+
+				<table class="table-info">
+					<tr>
+						<th><label class="required"><fmt:message key="credithc.sys.parent.area"
+								bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.parentName}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label class="required"><fmt:message key="credithc.sys.area.name" bundle="${systemBundle}"></fmt:message></label>
+						</th>
+						<td>${model.name}&nbsp;</td>
+					</tr>
+
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.spec" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.areaSpecId}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.code" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.code}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.name.abbr" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.abbr}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.full.name" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.fullName}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.sort.position" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.sortPosition}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.is.center" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><tags:showlabel-status tableName="AREA" columnName="IS_CENTER" value="${model.isCenter}"/></td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.longitude" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.longitude}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.latitude" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.latitude}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.area.geo.id" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.geoAreaId}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><tags:showlabel-status columnName="STS" tableName="AREA" value="${model.sts}"></tags:showlabel-status>&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.createDate}&nbsp;</td>
+					</tr>
+					<tr>
+						<th><label ><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th>
+						<td>${model.operateDate}&nbsp;</td>
+					</tr>
+					<tr class="row2">
+						<th><label><fmt:message key="credithc.sys.remarks" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><textarea name="remarks" readOnly="readonly" >${model.remarks}</textarea></td>
+					</tr>
+				</table>
+ 
+			</fieldset>
+		</div>
+		<div class="buttons" data-options="region:'south'">
+			<input type="button" class="button" id="closeSubmitBtn"
+				value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>" />
+		</div>
+	</form>
+</div>
+<script type="text/javascript">
+	//<![CDATA[
+	$(function() {
+		//关闭页面
+		$("#closeSubmitBtn").click(function() {
+			top.closeDialog();
+		});
+	});
+	//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

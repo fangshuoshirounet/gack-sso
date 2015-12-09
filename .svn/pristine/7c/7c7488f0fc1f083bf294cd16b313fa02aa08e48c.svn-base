@@ -1,0 +1,134 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<!-- 查询列表页面-->
+<div class="easyui-layout" data-options="fit:true">
+<!-- 上部:查询表单 -->
+    <div data-options="region:'north'" class="search">
+    <fieldset>
+        <legend><fmt:message key="credithc.sys.operation.manager" bundle="${systemBundle}"></fmt:message></legend>
+		<form id="searchForm">
+			<table class="search-table">
+				<tr>
+					<th><fmt:message key="credithc.sys.operation.name" bundle="${systemBundle}"></fmt:message></th>
+					<td><input type="text" maxlength="20" name="operationName" /></td>
+					<th><fmt:message key="credithc.sys.operation.code" bundle="${systemBundle}"></fmt:message></th>
+					<td><input type="text" maxlength="20" name="operationCode" /></td>
+                    <td colspan="4" class="search-buttons">
+                      <shiro:hasPermission name="security:operation:query">
+                      <input type="button" class="button" id="qryBtn" value="<fmt:message key='credithc.sys.button.query' bundle='${systemBundle}'></fmt:message>"/>
+                      <input type="button" class="button" id="clearBtn" value="<fmt:message key='credithc.sys.button.remove' bundle='${systemBundle}'></fmt:message>"/>
+                      </shiro:hasPermission>
+                    </td>
+				</tr>
+			</table>
+		</form>
+	</fieldset>
+	</div>
+<!-- 显示列表-->
+	<div id="flexgrid" data-options="region:'center'" class="content">
+        <table id="flexTable"></table>
+    </div>
+<!-- 底部:操作按钮-->
+        <div class="buttons" data-options="region:'south'">
+        	<shiro:hasPermission name="security:operation:view">
+            <input type="button" class="button" id="showBtn" value="<fmt:message key='credithc.sys.button.view' bundle='${systemBundle}'></fmt:message>"/>
+            </shiro:hasPermission>
+            <shiro:hasPermission name="security:operation:add">
+            <input type="button" class="button" id="addBtn" value="<fmt:message key='credithc.sys.button.add' bundle='${systemBundle}'></fmt:message>"/>
+            </shiro:hasPermission>
+            <shiro:hasPermission name="security:operation:edit">
+            <input type="button" class="button" id="editBtn" value="<fmt:message key='credithc.sys.button.edit' bundle='${systemBundle}'></fmt:message>"/>
+            </shiro:hasPermission>
+            <shiro:hasPermission name="security:operation:delete">
+            <input type="button" class="button" id="delBtn" value="<fmt:message key='credithc.sys.button.cancellation' bundle='${systemBundle}'></fmt:message>"/>
+            </shiro:hasPermission>
+       </div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+$(function() { 
+	$("#flexTable").flexigrid({
+		url : '${ctx}/security/operation?search=true',
+		title : "<fmt:message key='credithc.sys.operation.list' bundle='${systemBundle}'></fmt:message>",
+		hiddenArea:[{name:"operationId"}],
+		colModel : [ 
+		   {display : "<fmt:message key='credithc.sys.operation.name' bundle='${systemBundle}'></fmt:message>",name : 'operationName',width : 140,sortable : false,align : 'center',hide : false},
+		   {display : "<fmt:message key='credithc.sys.operation.code' bundle='${systemBundle}'></fmt:message>",name : 'operationCode',width : 140,sortable : true,align : 'center',hide : false},
+		   {display : '<fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message>',name : 'stsName',width : 140,sortable : false,align : 'center',hide : false},
+		   {display : '<fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message>',name : 'createDate',width : 135,sortable : true,align : 'center',hide : false},
+		   {
+				display: '<fmt:message key="credithc.sys.operation" bundle="${systemBundle}"></fmt:message>',
+				name: 'operate',
+				width: 135,
+				align: 'center',
+				operateColumn: [
+					            {html: '<shiro:hasPermission name="security:operation:view"><a  name="showLink" href="#"><fmt:message key="credithc.sys.view" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'},
+								{html: '<shiro:hasPermission name="security:operation:edit"><a name="editLink" href="#"><fmt:message key="credithc.sys.edit" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'},
+								{html: '<shiro:hasPermission name="security:operation:delete"><a name="delLink" href="#"><fmt:message key="credithc.sys.cancellation" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'}
+							   ]
+			}
+		   ]});
+	});
+	//查询
+	$("#qryBtn").live('click', function () {
+     	  $("#flexTable").flexRefresh();
+  	});
+	//重置
+	$("#clearBtn").live('click', function () {
+       $("#searchForm")[0].reset();
+  		 });
+	//新增
+	$("#addBtn").click(function () {
+		var url = '${ctx}/security/operation/new';
+		top.openDialog({href : url,resizable : false,height : 144,width : 380,title: "<fmt:message key='credithc.sys.operation.add' bundle='${systemBundle}'></fmt:message>",modal : true});
+	});
+	//修改
+    $("#editBtn,[name='editLink']").live("click",function () {
+    	if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证单行
+			var key = getSelected({nameGroup:'operationId',currentObj:$(this)});
+			var url = '${ctx}/security/operation/' + key + '/edit';
+			top.openDialog({href : url,resizable : false,height : 144,width : 380,title : "<fmt:message key='credithc.sys.operation.edit' bundle='${systemBundle}'></fmt:message>",modal : true});
+		}
+    });
+	//查看
+  	 $("#showBtn,[name='showLink']").live("click",function (event,data) {
+      	if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证单行
+			var key = getSelected({nameGroup:'operationId',currentObj:$(this)});
+			var url = '${ctx}/security/operation/' + key;
+			top.openDialog({href : url,resizable: false,height : 228,width : 380,title : "<fmt:message key='credithc.sys.operation.view' bundle='${systemBundle}'></fmt:message>",modal : true});
+		 }
+		});
+	//删除
+	 $("#delBtn,[name='delLink']").live("click",function (event,data) {
+     	var keys = getSelected({nameGroup:'operationId',currentObj:$(this)});
+     	if (isSelected({isMultiSelect:true,currentObj:$(this)})) {//验证多行
+				$.messager.confirm('<fmt:message key="credithc.sys.delete.prompt" bundle="${systemBundle}"></fmt:message>', '<fmt:message key="credithc.sys.delete.prompt.info" bundle="${systemBundle}"></fmt:message>', function(r){
+					if (r){
+						var url = "${ctx}/security/operation/" + keys + ".json?_method=DELETE";
+						/*$.getJSON(url, function(data){
+							$.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 2000,showType : 'slide'});
+							$("#flexTable").flexReload();
+						});*/
+						$.ajax({
+							type:'post',
+							url:url,
+							data:{id:keys},  
+							dataType:'json',
+							success:function(data){
+								$.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 2000,showType : 'slide'});
+								$("#flexTable").flexReload();
+							}
+						});
+					}
+				});
+			}
+     });
+	
+	//刷新flexgird 数据
+function refresh() {
+	$("#flexTable").flexReload();
+}
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

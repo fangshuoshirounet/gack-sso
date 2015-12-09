@@ -1,0 +1,55 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+	     <div class="info-form" data-options="region:'center'">
+	        <fieldset>
+              <legend><fmt:message key="credithc.sys.role.info" bundle="${systemBundle}"></fmt:message></legend>
+			  <table class="table-info">
+                    <li title="${model.roleName}">
+						<label><fmt:message key="credithc.sys.role.name" bundle="${systemBundle}"></fmt:message></label>
+						${model.roleName}
+					</td></tr>
+					<li title="${model.roleCode}">
+						<label><fmt:message key="credithc.sys.role.code" bundle="${systemBundle}"></fmt:message></label>
+						${model.roleCode}
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label>
+						<tags:showlabel-status tableName="ROLE" columnName="STS" value="${model.sts}"></tags:showlabel-status>
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label>
+						 ${model.operateDate}
+					</td></tr>	
+					<li >
+						<label><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label>
+						 ${model.createDate}
+					</td></tr>	
+					<tr class="row2"><th>
+					    <label ><fmt:message key="credithc.sys.role.desc" bundle="${systemBundle}"></fmt:message></label>
+						<textarea  name="roleDesc" readonly>${model.roleDesc}</textarea>
+					</td></tr>
+					
+			 </table>
+			</fieldset>
+		</div>
+		<div class="buttons" data-options="region:'south'">
+		 	<input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+         </div>
+    </form>
+</div>
+<script type="text/javascript">
+//<![CDATA
+$(function(){
+	//关闭页面
+	 $("#closeSubmitBtn").click(function(){
+		//$("#viewModal").dialog('close');
+		  top.closeDialog();
+	 }); 
+});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

@@ -1,0 +1,156 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/admin/common/top.jsp"%>
+<div class="easyui-layout" data-options="fit:true">
+	<!-- 中间区域 -->
+	<div data-options="region:'center'" class="no-border">
+		<div class="easyui-layout" data-options="fit:true">
+			<!-- 上部:查询表单 -->
+			<div data-options="region:'north'" class="search">
+			<fieldset>
+            <legend>筛选条件</legend> 
+				<form id="serachForm">
+					<table  class="search-table">
+						<tr>			
+						    <th>角色名称</th>
+							<td><input type="text" maxlength="60" name="roleName"/></td>
+							<th>角色编码</th>
+							<td><input type="text" maxlength="60" name="roleCode"/></td>
+							<td colspan="2" class="search-buttons">
+							    <shiro:hasPermission name="security:role:query">
+		                        <input type="button" class="button" id="qryBtn" value="查询" />
+									<input type="button" class="button" id="clearBtn" value="清除" />
+		                        </shiro:hasPermission>
+	                        </td>
+						</tr>
+					</table>
+				</form>
+	    	</fieldset>
+			</div>
+			<!-- 下部:显示列表-->
+			<div id="flexgrid" data-options="region:'center'" class="content">
+				<table id="flexTable"></table>
+			</div>
+			<div data-options="region:'south'" class="buttons"> 
+				 <shiro:hasPermission name="security:role:delete">
+       <input type="button" class="button" id="delBtn" value="注销" />
+       </shiro:hasPermission>
+         <shiro:hasPermission name="security:role:edit">
+       <input type="button" class="button" id="editBtn" value="修改" />
+       </shiro:hasPermission>
+        <shiro:hasPermission name="security:role:add">
+       <input type="button" class="button" id="addBtn" value="新建" />
+       </shiro:hasPermission>
+       <shiro:hasPermission name="security:role:view">
+       <input type="button" class="button" id="showBtn" value="查看" />
+       </shiro:hasPermission>
+			</div>
+		</div>
+	</div>
+</div>
+ 
+<script type="text/javascript">
+//<![CDATA[
+	$(function() { 
+		$("#flexTable").flexigrid({
+			title:"角色列表",
+			url:"${ctx_admin}/security/role?search=true",
+			hiddenArea:[{name:'roleId'}],
+			colModel : [ 		
+			    {display : '角色编码',name : 'roleCode',width : 140,sortable : false,align : 'center'}, 		            
+				{display : '角色名称',name : 'roleName',width : 140,sortable : true,align : 'center'}, 
+				{display : '状态',name : 'stsName',width : 140,sortable : false,align : 'center'}, 
+				{display : '创建时间',name : 'createDate',width : 155,sortable : true,align : 'center'},
+				{
+					display: '操作',
+					name: 'operate',
+					width: 165,
+					align: 'center',
+					operateColumn: [
+						            {html: '<shiro:hasPermission name="security:role:view"><a  name="ShowRoleLink" href="#">查看权限</a></shiro:hasPermission>'},
+						            {html: '<shiro:hasPermission name="security:role:view"><a  name="showLink" href="#">查看</a></shiro:hasPermission>'},
+									{html: '<shiro:hasPermission name="security:role:edit"><a name="editLink" href="#">修改</a></shiro:hasPermission>'},
+									{html: '<shiro:hasPermission name="security:role:delete"><a name="delLink" href="#">注销</a></shiro:hasPermission>'}
+									 
+									]
+				}	
+				]
+		});
+		//查询
+		$("#qryBtn").click(function() {
+			$("#flexTable").flexRefresh();
+		});
+		//重置
+		$("#clearBtn").click(function() {
+			$("#serachForm")[0].reset();
+		});
+		//新建
+		  $("#addBtn").click(function () {
+			var url='${ctx_admin}/security/role/new';
+			top.openDialog({href: url,resizable: false,height: 230,width: 380,title: "新建角色",modal: true
+			   });
+	        });
+		//修改
+		$("#editBtn,[name='editLink']").live("click",function () {
+			  if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证只能选中单行，如查看，修改
+			var key= getSelected({nameGroup:'roleId',currentObj:$(this)});
+			var url='${ctx_admin}/security/role/' + key + '/edit';
+			top.openDialog({href:url,resizable: false,height: 230,width: 380,title: "修改角色",modal: true
+		     });
+			 }
+	        });
+		//查看
+		  $("#showBtn,[name='showLink']").live("click",function (event,data) {
+		 if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证只能选中单行，如查看，修改
+		var key=getSelected({nameGroup:'roleId',currentObj:$(this)});
+			var url='${ctx_admin}/security/role/' + key;
+			top.openDialog({href:url,resizable: false,height: 230,width: 380,title: '角色信息',modal: true
+		      });
+			  }
+	        });
+		
+		
+		  function fixWidth(){  
+		         return document.body.clientWidth;  
+		     } 
+			 function fixHeight(percent){  
+		         return document.body.clientHeight;  
+		     } 
+		  $("[name='ShowRoleLink']").live("click",function (event,data) {
+				 if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证只能选中单行，如查看，修改
+				    var key=getSelected({nameGroup:'roleId',currentObj:$(this)});
+					var url='${ctx_admin}/security/rolepermission/roleView?roleId=' + key;
+					top.openDialog({href:url,resizable: false,width:fixWidth(),height:fixHeight(),title: '角色信息',modal: true
+				      });
+					  }
+			        });
+		//删除
+	 $("#delBtn,[name='delLink']").live("click",function (event,data) {
+	    	var keys=getSelected({nameGroup:'roleId',currentObj:$(this)});
+	    	if (isSelected({isMultiSelect:true,currentObj:$(this)})) {
+				$.messager.confirm('删除提示', '您是否确定永久删除选中数据?', function(r) {
+					if (r) {
+						var url = "${ctx_admin}/security/role/" + keys
+								+ ".json?_method=DELETE";
+						$.ajax({
+							type:'post',
+							url:url,
+							data:{id:keys},  
+							dataType:'json',
+							success:function(data){
+								$.messager.show({title : '温馨提示:',msg : data.message,timeout : 1000,showType : 'slide'});
+								$("#flexTable").flexReload();
+							}
+						});
+					}
+				});
+		  }
+      }); 
+    });
+	//刷新flexgird 数据
+	function refresh() {
+		$("#flexTable").flexReload();
+	}
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/admin/common/bottom.jsp"%>

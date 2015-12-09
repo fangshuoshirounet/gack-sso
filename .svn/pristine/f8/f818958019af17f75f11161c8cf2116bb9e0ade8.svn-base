@@ -1,0 +1,143 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<!-- 查询列表页面-->
+<div class="easyui-layout" data-options="fit:true">
+	<div id="top" data-options="region:'north'" class="nav">
+			<table class="nav-table">
+			<tr>
+				  <td class="guide-first-unselected"></td>
+				  <td class="guide-unselected-step" id="step1">1<fmt:message key="credithc.sys.staff.permission.selectstaff" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+			      <td class="guide-unselected-step" id="step2">2<fmt:message key="credithc.sys.staff.permission.selectuser" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-selected"></td>
+				  <td class="guide-selected-step" id="step3">3<fmt:message key="credithc.sys.rolepermission.role" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-selected-unselected"></td>
+				  <td class="guide-unselected-step" id="step4">4<fmt:message key="credithc.sys.staff.permission.menu.privilege" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step5">5<fmt:message key="credithc.sys.staff.permission.catalog.privilege" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step6">6<fmt:message key="credithc.sys.staff.permission.menu.constraints" bundle="${systemBundle}"></fmt:message></td>
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step7">7<fmt:message key="credithc.sys.staff.permission.catalog.constraints" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step8">8<fmt:message key="credithc.sys.staff.permission.constraints.view" bundle="${systemBundle}"></fmt:message></td>
+			      <td class="guide-unselected-step"></td>
+			  </tr> 
+            </table>
+	   </div> 
+   <!-- 上部:查询表单 -->
+ <!-- 中间:显示列表-->
+    <div id="flexgrid" data-options="region:'center'" class="content">
+                <form id="saveRole" method="post">
+                <table id="flexTable"></table>
+                 <input type="hidden" name="sysUser.sysUserId" value="${model.sysUserId}" id="sysUserId"></input>	
+				</form>
+    </div>
+    <!-- 底部:操作按钮-->
+            <div data-options="region:'south'" class="buttons">
+            	<input type="button" class="button" id="menuBackBtn" value="<fmt:message key='credithc.sys.button.up' bundle='${systemBundle}'></fmt:message>"/>
+				<input type="button" class="button" id="saveBtn" value="<fmt:message key='credithc.sys.button.save' bundle='${systemBundle}'></fmt:message>"/>
+				<input type="button" class="button" id="menuNextBtn" value="<fmt:message key='credithc.sys.button.next' bundle='${systemBundle}'></fmt:message>"/>
+            </div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+var staffId="${model.staffId}";
+	$(function() { 
+		$("#flexTable").flexigrid({
+			title:"<fmt:message key="credithc.sys.role.info" bundle="${systemBundle}"></fmt:message>",
+			url:"${ctx}/security/staffpermission/queryRoleList",
+			autoload : true,
+			height : flexgirdHeight-30,
+			hiddenArea :[{
+				name :'roleId'
+			}],
+			colModel : [ 
+			             {display : '<fmt:message key="credithc.sys.role.code" bundle="${systemBundle}"></fmt:message>',name : 'roleCode',width : 200,sortable : false,align : 'center'},
+			             {display : '<fmt:message key="credithc.sys.role.name" bundle="${systemBundle}"></fmt:message>',name : 'roleName',width : 200,sortable : true,align : 'center'}, 
+			             {display : '<fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message>',name : 'stsName',width : 200,sortable : false,align : 'center'}, 
+						 {display : '<fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message>',name : 'operateDate',width : 200,sortable : true,align : 'center'}
+				       ],
+		   onSuccess:function(){
+			   var sysUserId = $("#sysUserId").val();
+			   var random = Math.floor(Math.random()*1000+1);
+			   var url = '${ctx}/security/staffpermission/querySysUserRole?sysUserId='+sysUserId+"&random="+random;
+			   $.getJSON(url, function (data) {
+				  var ids = data.ids;
+			   	  if(ids!=null&&ids.length>0){
+			   	 		$("#flexTable tr ").each(function (n, tr) {
+			   	 		   var roleId = $(tr).find("input[name='roleId']").val();
+		                   if(ids.indexOf(roleId)>0){
+		                	   var input = $($(tr).children().eq(0));
+		                	   var checkbox = input.find("input[type='checkbox']");
+		                       $(checkbox).attr("checked", "checked");
+		                       if (n % 2 == 0) {
+		                           $(tr).attr("class", "erow trSelected");
+		                       } else {
+		                           $(tr).attr("class", "trSelected");
+		                       }
+		                   }
+		               });
+			   	 	}
+			   });	
+		   }
+		});
+		//上一步
+		$("#menuBackBtn").click(function(){
+			var staffId="${model.staffId}";
+			var url='${ctx}/security/staffpermission/permission?staffId=' + staffId+"&step=choosesysuser" ;
+			window.location.href=url;
+		});
+		
+		//表单提交
+		$("#saveBtn").click(function(){
+			if(validateSelected(true)){
+				var roleIds=getSelectRowByName("roleId");
+				var sysUserId = $("#sysUserId").val();
+				var url = '${ctx}/security/staffpermission/saveSysUserRole?roleId='+roleIds+"&sysUserId="+sysUserId;
+				$.getJSON(url, function (data) {
+					$.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 2000,showType : 'slide'});
+			    });
+			}
+		}); 
+		//下一步
+		$("#menuNextBtn").click(function(){
+			var len = $('.trSelected').length;
+			var key = $("#sysUserId").val();
+			if(len==0){
+				$.messager.confirm('温馨提示', '您是否确定不选择角色，进行授权?', function (r) {
+					if(r){
+						var url='${ctx}/security/staffpermission/permission?sysUserId='+key+'&step=menuprivilege'+"&staffId="+staffId ;
+			 			window.location.href=url;
+					}
+				});
+			}else{
+				 
+				var random = Math.floor(Math.random()*1000+1);
+				var validateurl = "${ctx}/security/staffpermission/validateadmin?sysUserId="+key+"&random="+random+"&staffId="+staffId;
+			    $.getJSON(validateurl, function (data) {
+		    		 if(data.errorResult=="2"){
+		    			 $.messager.confirm('温馨提示', data.errorMsg, function (r) {
+			    			 if(r){
+			    				 var url='${ctx}/security/staffpermission/permission?sysUserId='+key+'&step=menuprivilege'+"&staffId="+staffId ;
+						 		 window.location.href=url;
+			    			 }
+			    		 });
+		    		 }else if(data.errorResult=="1"){
+		    			 $.messager.alert('温馨提示', data.errorMsg, '<fmt:message key="credithc.sys.prompt.info" bundle="${systemBundle}"></fmt:message>');
+		    		 }else{
+				    		var url='${ctx}/security/staffpermission/permission?sysUserId='+key+'&step=menuprivilege'+"&staffId="+staffId ;
+				 			window.location.href=url;
+			    	 }
+			    });
+			}
+		});
+		
+    });
+	$("#step4").click(function(){
+		$("#menuNextBtn").click();
+	});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

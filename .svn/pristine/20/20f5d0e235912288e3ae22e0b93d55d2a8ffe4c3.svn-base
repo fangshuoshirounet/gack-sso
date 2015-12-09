@@ -1,0 +1,86 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<script src="${ctx}/resources/themes/${THEME}/js/func.md5.js" type="text/javascript"></script>
+<div class="easyui-layout" data-options="fit:true">
+    <div class="info-form" data-options="region:'center'">
+	<form method="post" id="addForm">
+		<input type="hidden" name="sysUser.staffId" value="${model.staffId}" />
+            <fieldset>
+                <legend><fmt:message key="credithc.sys.sysuser.info" bundle="${systemBundle}"></fmt:message></legend>
+                <table class="table-info">
+					<tr><th>
+						<label class="required"><fmt:message key="credithc.sys.user.login.name" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<input class="easyui-validatebox" type="text" validType="checkUserName['${ctx}','请输入正确的<fmt:message key="credithc.sys.user.login.name.required" bundle="${systemBundle}"></fmt:message>']"  name="sysUser.loginName"   required="true" id="loginName"></input>
+					</td></tr>
+					<tr><th>
+						<label class="required"><fmt:message key="credithc.sys.password.lose.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<input type="text"  name="sysUser.pwdInactiveTime" class="easyui-validatebox" required="true"  onfocus="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"/>
+					</td></tr>
+					<tr><th>
+						<label class="required"><fmt:message key="credithc.sys.isinit.password" bundle="${systemBundle}"></fmt:message> </label></th><td>
+						<tags:radio-status required="true" columnName="INIT_PWD_FLAG"  tableName="SYS_USER" name="sysUser.initPwdFlag"/>
+					</td></tr>
+					<tr><th>
+						<label class="required">用户密码</label></th><td>
+						<input class="easyui-validatebox" type="password" style="width: 180px;"   name="sysUser.password"   required="true" id="password"></input>
+					</td></tr>
+					<tr class="row2"><th>
+						<label><fmt:message key="credithc.sys.desc" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<textarea name="sysUser.remarks"></textarea>
+					</td></tr>
+                </table>
+            </fieldset>
+    </form>
+    </div>
+    <div class="buttons" data-options="region:'south'">
+	    <button class="button" id="btnSubmit"><fmt:message key='credithc.sys.button.submit' bundle='${systemBundle}'></fmt:message></button>
+		<button class="button" id="btnCancel"><fmt:message key='credithc.sys.button.cancel' bundle='${systemBundle}'></fmt:message></button>
+	</div> 
+</div>
+<script type="text/javascript">
+//<![CDATA[
+$(function(){
+	$(".info-form input[type='text']").css({"width": "180px"});
+	 //表单提交
+     $("#btnSubmit").click(function(){
+   		 $("#addForm").submit();
+	 });
+	 $("input[name='sysUser.initPwdFlag']").bind("click",function(){
+		if("N"==$(this).val()){
+			$("#initPwdFlag").css("display","inline");
+			$("#password").attr("required","true");
+			$("#password").attr("class","easyui-validatebox");
+		}else{
+			$("#initPwdFlag").css("display","none");
+			$("#password").attr("required","false");
+			$("#password").attr("class","");
+		}
+	 });
+     $('#addForm').ajaxForm({
+    	url: "${ctx}/security/staffpermission/saveSysUser",
+    	beforeSubmit:function(formData, jqForm){
+    		var tag = jqForm.form('validate');
+    		if(tag){
+    			for(var i =0;i<formData.length;i++){
+    				if(formData[i].name=='sysUser.password'){
+    					formData[i].value=new $.Md5().hex_md5($("#password").val());
+    				}
+    			}
+    		}
+    		return tag;
+        },
+		success:function(data){
+			getDtt().refresh();
+		 	 top.closeDialog();
+		  $.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 1000,showType : 'slide'});
+		}
+ 	 });
+	//重置页面
+	 $("#btnCancel").click(function(){
+		 top.closeDialog();
+	 }); 
+ });
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

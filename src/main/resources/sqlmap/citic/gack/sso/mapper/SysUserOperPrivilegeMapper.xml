@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.SysUserOperPrivilegeMapper">
+	  <select id="queryListByPage" resultType="citic.gack.sso.entity.SysUserOperPrivilege" parameterType="citic.gack.sso.entity.SysUserOperPrivilege">
+		select OPER_PRIVILEGE_ID,operator_id,creator_id, PRIVILEGE_ID, MENU_OPERATION_ID, CATALOG_OPERATE_TYPE, STS, date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator 
+		from SYS_USER_OPER_PRIVILEGE
+		where 1=1 AND  STS='A'
+		<if test="page.sortName!=null">
+			order by ${page.sortNameName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortNameOrder}
+		</if>	 
+	</select>
+	 
+	<insert id="save" parameterType="citic.gack.sso.entity.SysUserOperPrivilege">
+		insert into SYS_USER_OPER_PRIVILEGE (OPER_PRIVILEGE_ID,operator_id,creator_id, PRIVILEGE_ID, MENU_OPERATION_ID, CATALOG_OPERATE_TYPE, STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR)
+		values 
+		(#{operPrivilegeId} ,#{creatorId},#{creatorId},
+		#{privilegeId} ,
+		#{menuOperationId,jdbcType=VARCHAR} ,
+		#{catalogOperateType,jdbcType=VARCHAR} ,
+		#{sts},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator})
+	</insert>
+	
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysUserOperPrivilege">
+		update SYS_USER_OPER_PRIVILEGE 
+		set PRIVILEGE_ID=#{privilegeId},operator_id=#{operatorId} ,
+		MENU_OPERATION_ID=#{menuOperationId,jdbcType=VARCHAR} ,
+		CATALOG_OPERATE_TYPE=#{catalogOperateType,jdbcType=VARCHAR} ,
+		STS=#{sts} ,
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where OPER_PRIVILEGE_ID=#{operPrivilegeId} and  VERSION=#{version}
+	</update>
+	
+	
+	<update id="deleteById" parameterType="citic.gack.sso.entity.SysUserOperPrivilege">
+			update SYS_USER_OPER_PRIVILEGE 	set  
+		STS=#{sts},operator_id=#{operatorId} ,
+		  OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where OPER_PRIVILEGE_ID=#{operPrivilegeId}
+	</update>
+	 
+	<select id="queryList" resultType="citic.gack.sso.entity.SysUserOperPrivilege" parameterType="citic.gack.sso.entity.SysUserOperPrivilege">
+			select OPER_PRIVILEGE_ID,operator_id,creator_id, PRIVILEGE_ID, MENU_OPERATION_ID, CATALOG_OPERATE_TYPE, STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_USER_OPER_PRIVILEGE
+	</select>
+	  <select id="searchMenuOrCatelogSysUserPrivilege" resultType="citic.gack.sso.entity.SysUserOperPrivilege" parameterType="citic.gack.sso.admin.dto.SysUserPermissionDTO">
+			select OPER_PRIVILEGE_ID,operator_id,creator_id, PRIVILEGE_ID, MENU_OPERATION_ID, CATALOG_OPERATE_TYPE, STS, date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_USER_OPER_PRIVILEGE where STS='A' and PRIVILEGE_ID=#{privilegeId}
+	</select>
+	<update id="deleteMenuOrCatelogSysUserPrivilege" parameterType="citic.gack.sso.admin.dto.SysUserPermissionDTO">
+			update SYS_USER_OPER_PRIVILEGE  set STS='P' ,operator_id=#{operatorId},OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s') where PRIVILEGE_ID=#{privilegeId}
+	</update>
+	
+	<select id="queryById" resultType="citic.gack.sso.entity.SysUserOperPrivilege" parameterType="citic.gack.sso.entity.SysUserOperPrivilege">
+		select OPER_PRIVILEGE_ID,operator_id,creator_id,VERSION, PRIVILEGE_ID, MENU_OPERATION_ID, CATALOG_OPERATE_TYPE, STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_USER_OPER_PRIVILEGE where 1=1 and OPER_PRIVILEGE_ID=#{operPrivilegeId}
+	</select>
+	
+</mapper>

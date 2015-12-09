@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.SysUserMapper">
+	<select id="queryListByPage" resultType="citic.gack.sso.admin.dto.SysUserDTO"
+		parameterType="citic.gack.sso.admin.dto.SysUserDTO">
+		select A.ORG_ID,a.operator_id,a.creator_id,
+		A.NAME,B.NAME
+		orgName,A.EMAIL,A.employee_No,A.SEX,A.duty_id,c.name
+		duty_name,date_format(A.birthday,'%Y-%m-%d') birthday,id_number,
+		A.ACRONYM,
+		A.MOBILE,
+		A.HOME_PHONE,A.SYS_USER_ID,A.VERSION,A.LOGIN_NAME, A.REMARKS,
+		A.STS,date_format(A.PWD_INACTIVE_TIME,'%Y-%m-%d %H:%i:%s')
+		PWD_INACTIVE_TIME,date_format(A.PWD_SET_TIME,'%Y-%m-%d %H:%i:%s')
+		PWD_SET_TIME,
+		date_format(A.OPERATE_DATE,'%Y-%m-%d %H:%i:%s')
+		OPERATE_DATE
+		,date_format(A.CREATE_DATE,'%Y-%m-%d %H:%i:%s')
+		CREATE_DATE
+		,A.operator,A.creator from 	SYS_USER A INNER  JOIN
+			SYS_ORGANIZATION B ON A.ORG_ID = B.ORG_ID 
+		LEFT JOIN sys_duty C ON a.DUTY_ID = c.duty_id
+		WHERE    
+		A.STS='A'  
+		<if test="condition.name!=null and condition.name!=''">
+			and A.NAME like '%${condition.name}%'
+		</if>
+		<if test="condition.orgId !=null and condition.orgId !=''">
+			and A.ORG_ID =#{condition.orgId}
+		</if>
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if>
+	</select>
+
+	<select id="doGetAuthenticationInfo" parameterType="java.lang.String"
+		resultType="citic.gack.sso.admin.dto.SysUserDTO">
+		select a.SYS_USER_ID,a.operator_id,a.creator_id,
+		a.LOGIN_NAME, a.PASSWORD,A.EMAIL,A.employee_No,A.SEX,
+		date_format(a.PWD_INACTIVE_TIME,'%Y-%m-%d %H:%i:%s') PWD_INACTIVE_TIME
+		, a.STS, a.NAME, a.STS , a.ORG_ID, c.NAME as ORG_NAME
+		from SYS_USER a,
+		SYS_ORGANIZATION c
+		where a.ORG_ID = c.ORG_ID and A.STS='A' and a.LOGIN_NAME
+		=
+		#{loginName}
+	</select>
+	<update id="updatePwdById" parameterType="citic.gack.sso.admin.dto.SysUserDTO">
+		update SYS_USER set
+		 
+		PWD_INACTIVE_TIME=DATE_ADD(PWD_INACTIVE_TIME, INTERVAL 3 MONTH),
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d
+		%H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1,
+		password=#{password,jdbcType=VARCHAR}
+		where
+		SYS_USER_ID=#{sysUserId,jdbcType=VARCHAR}  
+	</update>
+	<select id="searchSysUserByName" parameterType="java.lang.String"
+		resultType="citic.gack.sso.admin.dto.SysUserDTO">
+		select a.SYS_USER_ID, a.LOGIN_NAME,
+		a.PASSWORD,A.EMAIL,A.employee_No,A.SEX,
+		a.STS,a.operator_id,a.creator_id from
+		SYS_USER a
+		where a.sts='A' and
+		a.LOGIN_NAME = #{loginName}	
+	</select>
+	
+	
+	<select id="searchUserByName" parameterType="java.lang.String"
+		resultType="citic.gack.sso.admin.dto.SysUserDTO">
+		select a.SYS_USER_ID, a.LOGIN_NAME,
+		a.PASSWORD,A.EMAIL,A.employee_No,A.SEX,
+		a.STS,a.operator_id,a.creator_id from
+		SYS_USER a
+		where a.sts='A' and
+		a.LOGIN_NAME = #{loginName}
+		union 
+		select a.SYS_USER_ID, a.LOGIN_NAME,
+		a.PASSWORD,A.EMAIL,A.employee_No,A.SEX,
+		a.STS,a.operator_id,a.creator_id from
+		APPLY_USER a
+		where a.sts='A' and
+		a.LOGIN_NAME = #{loginName} and A.CHANGE_TYPE='A'
+		and A.Apply_type='U'
+		and a.AUDIT_STATUS='I'
+		
+	</select>
+
+	<insert id="save" parameterType="citic.gack.sso.admin.dto.SysUserDTO">
+		insert into SYS_USER (
+		SYS_USER_ID,operator_id,creator_id,
+		LOGIN_NAME,
+		PASSWORD,
+		PWD_SET_TIME,
+		PWD_INACTIVE_TIME,
+		INIT_PWD_FLAG,
+		REMARKS,
+		ORG_ID,
+		NAME,
+		ACRONYM,EMAIL,SEX,
+		MOBILE,
+		HOME_PHONE,employee_No,
+		STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR,duty_id,birthday,id_number
+		) values (
+		#{sysUserId,jdbcType=VARCHAR},#{creatorId},#{creatorId},
+		#{loginName,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR},
+		str_to_date(#{pwdSetTime,jdbcType=VARCHAR},'%Y-%m-%d %H:%i:%s'),
+		str_to_date(#{pwdInactiveTime,jdbcType=VARCHAR},'%Y-%m-%d %H:%i:%s'),
+		#{initPwdFlag,jdbcType=VARCHAR},
+		#{remarks,jdbcType=VARCHAR},
+		#{orgId,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{acronym,jdbcType=VARCHAR},
+		#{email,jdbcType=VARCHAR},
+		#{sex,jdbcType=VARCHAR},
+		#{mobile,jdbcType=VARCHAR},
+		#{homePhone,jdbcType=VARCHAR},#{employeeNo,jdbcType=VARCHAR},
+		#{sts,jdbcType=VARCHAR},str_to_date(#{createDate},'%Y-%m-%d
+		%H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d'),#{creator},#{dutyId,jdbcType=VARCHAR},str_to_date(#{birthday},'%Y-%m-%d'),#{idNumber,jdbcType=VARCHAR}
+		)
+
+	</insert>
+
+	<update id="updateById" parameterType="citic.gack.sso.admin.dto.SysUserDTO">
+		update SYS_USER set
+		REMARKS=#{remarks ,jdbcType=VARCHAR},
+		SEX=#{sex,jdbcType=VARCHAR},
+		MOBILE=#{mobile,jdbcType=VARCHAR},
+		HOME_PHONE=#{homePhone,jdbcType=VARCHAR},
+		EMAIL=#{email,jdbcType=VARCHAR},
+		ORG_ID=#{orgId,jdbcType=VARCHAR},operator_id=#{operatorId},
+		NAME=#{name,jdbcType=VARCHAR},
+		ACRONYM=#{acronym,jdbcType=VARCHAR},
+		STS=#{sts ,jdbcType=VARCHAR},
+		duty_id=#{dutyId
+		,jdbcType=VARCHAR},
+		id_number=#{idNumber ,jdbcType=VARCHAR},
+		birthday=str_to_date(#{birthday},'%Y-%m-%d'),
+		PWD_INACTIVE_TIME=str_to_date(#{pwdInactiveTime,jdbcType=VARCHAR},'%Y-%m-%d
+		%H:%i:%s'),
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d
+		%H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where
+		SYS_USER_ID=#{sysUserId,jdbcType=VARCHAR} and VERSION=#{version}
+	</update>
+	<update id="updateByApply" parameterType="citic.gack.sso.admin.dto.SysUserDTO">
+		update SYS_USER set
+		REMARKS=#{remarks ,jdbcType=VARCHAR},
+		SEX=#{sex,jdbcType=VARCHAR},
+		MOBILE=#{mobile,jdbcType=VARCHAR},
+		HOME_PHONE=#{homePhone,jdbcType=VARCHAR},
+		EMAIL=#{email,jdbcType=VARCHAR},
+		ORG_ID=#{orgId,jdbcType=VARCHAR},operator_id=#{operatorId}, 
+		ACRONYM=#{acronym,jdbcType=VARCHAR}, 
+		duty_id=#{dutyId
+		,jdbcType=VARCHAR},
+		id_number=#{idNumber ,jdbcType=VARCHAR},
+		birthday=str_to_date(#{birthday},'%Y-%m-%d'),
+		PWD_INACTIVE_TIME=str_to_date(#{pwdInactiveTime,jdbcType=VARCHAR},'%Y-%m-%d
+		%H:%i:%s'),
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d
+		%H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where
+		SYS_USER_ID=#{sysUserId,jdbcType=VARCHAR}  
+	</update>
+
+	<delete id="deleteById" parameterType="citic.gack.sso.admin.dto.SysUserDTO">
+		update SYS_USER set
+		STS='P',operator_id=#{operatorId},
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d
+		%H:%i:%s'),OPERATOR=#{operator} ,VERSION=VERSION+1 where SYS_USER_ID=#{sysUserId}
+	</delete>
+
+	<select id="queryList" parameterType="citic.gack.sso.admin.dto.SysUserDTO"
+		resultType="citic.gack.sso.admin.dto.SysUserDTO">
+		select * from SYS_USER
+	</select>
+
+	<select id="queryById" parameterType="citic.gack.sso.admin.dto.SysUserDTO"
+		resultType="citic.gack.sso.admin.dto.SysUserDTO">
+		select B.NAME orgName,
+		A.SYS_USER_ID,a.operator_id,a.creator_id,
+		A.LOGIN_NAME,
+		A.PASSWORD,
+		date_format(A.PWD_SET_TIME,'%Y-%m-%d %H:%i:%s') PWD_SET_TIME,
+		date_format(A.PWD_INACTIVE_TIME,'%Y-%m-%d %H:%i:%s')
+		PWD_INACTIVE_TIME,
+		date_format(A.CREATE_DATE,'%Y-%m-%d %H:%i:%s')
+		CREATE_DATE,
+		date_format(A.OPERATE_DATE,'%Y-%m-%d %H:%i:%s')
+		OPERATE_DATE,
+		A.INIT_PWD_FLAG,
+		A.REMARKS,
+		A.ORG_ID,
+		A.NAME,
+		A.ACRONYM,EMAIL,SEX,
+		A.MOBILE,
+		A.HOME_PHONE,A.employee_No,A.duty_id,c.name
+		duty_name,date_format(A.birthday,'%Y-%m-%d') birthday,id_number,
+		A.STS,A.CREATOR,A.VERSION,A.OPERATOR from 	SYS_USER A INNER  JOIN
+			SYS_ORGANIZATION B ON A.ORG_ID = B.ORG_ID 
+		LEFT JOIN sys_duty C ON a.DUTY_ID = c.duty_id
+		WHERE A.STS='A'  
+		  and A.SYS_USER_ID=#{sysUserId}
+	</select>
+
+
+	<select id="sarchSysUserByOrgId" parameterType="java.lang.String"
+		resultType="citic.gack.sso.admin.dto.SysUserDTO">
+		select
+		ORG_ID,operator_id,creator_id,
+		NAME,
+		ACRONYM,A.EMAIL,A.employee_No,A.SEX,
+		MOBILE,
+		HOME_PHONE,SYS_USER_ID,LOGIN_NAME, PASSWORD, PWD_SET_TIME,
+		date_format(PWD_INACTIVE_TIME,'%Y-%m-%d
+		%H:%i:%s') PWD_INACTIVE_TIME,
+		LAST_PWD, INIT_PWD_FLAG, REMARKS, STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE
+		,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s')
+		CREATE_DATE,A.duty_id,name
+		duty_name,date_format(A.birthday,'%Y-%m-%d') birthday,id_number
+		,operator,creator,VERSION from SYS_USER A where ORG_ID=#{orgId} and
+		STS='A'
+	</select>
+	
+	<select id="selectUsersByOrgIds" parameterType="java.lang.String"
+		resultType="citic.gack.sso.admin.dto.SysUserDTO">
+		select
+			A.ORG_ID,
+			B.NAME ORG_NAME,
+			A.OPERATOR_ID,
+			A.CREATOR_ID,
+			A.NAME,
+			A.ACRONYM,
+			A.EMAIL,
+			A.employee_No,
+			A.SEX,
+			A.MOBILE,
+			A.HOME_PHONE,
+			A.SYS_USER_ID,
+			A.LOGIN_NAME, 
+			A.PASSWORD, 
+			A.PWD_SET_TIME,
+			date_format(A.PWD_INACTIVE_TIME,'%Y-%m-%d%H:%i:%s') PWD_INACTIVE_TIME,
+			A.LAST_PWD, 
+			A.INIT_PWD_FLAG, 
+			A.REMARKS, 
+			A.STS,
+			date_format(A.OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE,
+			date_format(A.CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE,
+			A.DUTY_ID,
+			A.NAME DUTY_NAME,
+			date_format(A.BIRTHDAY,'%Y-%m-%d') birthday,
+			A.ID_NUMBER,
+			A.OPERATOR,
+			A.CREATOR,
+			A.VERSION 
+		from 
+			SYS_USER A ,SYS_ORGANIZATION B
+		where A.ORG_ID = B.ORG_ID
+		  and  A.ORG_ID in 
+		  <foreach collection="array" item="item" index="index" open="(" separator="," close=")">
+		  	#{item}
+		  </foreach>
+		  and A.STS='A'
+		  and B.STS='A'
+	</select>
+
+</mapper>

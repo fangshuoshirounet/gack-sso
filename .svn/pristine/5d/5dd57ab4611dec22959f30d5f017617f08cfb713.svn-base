@@ -1,0 +1,110 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="shiro" uri="http://shiro.apache.org/tags" %>
+<%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<fmt:setLocale value="${LANGUAGE}"/>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="theme" value="${sessionScope.theme}"/>
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title><fmt:message key="credithc.sys.homepage.layout.chanage" bundle="${systemBundle}"></fmt:message></title>
+<link rel="stylesheet" type="text/css" href="${ctx}/resources/widget-ui/css/widget.css" />
+<link rel="stylesheet" type="text/css" href="${ctx}/resources/themes/${THEME}/css/application.css">
+<script src="${ctx}/resources/jquery/1.7.2/jquery-1.7.2.js" type="text/javascript"></script>
+<script type="text/javascript">var jQuery = <fmt:message key="credithc.sys.homepage.layout.js.info" bundle="${systemBundle}"></fmt:message></script> 
+<script src="${ctx}/resources/widget-ui/js/prototype.js" type="text/javascript"></script> 
+<script src="${ctx}/resources/widget-ui/js/json.js/json.js" type="text/javascript"></script>
+<script src="${ctx}/resources/widget-ui/js/widgetJSON.js" type="text/javascript"></script>
+<script type="text/javascript">  
+	//标识当前标签的布局标识，用于控制布局列表默认显示
+	var defaultLayoutId = '${layoutId}';
+	//标识当前选中的布局样式信息
+	var data = {layoutId:'',columns:[]};
+	//当前选中的布局标识
+	var checkedLayoutId = '';
+	jQuery(document).ready(function(){
+		initData(); 
+		initEvent();
+	}); 
+	function initData(){
+		/*1.将当前标签现有的布局默认选中*/
+		jQuery("img[imgId='"+ defaultLayoutId +"']").css({"border":"1px solid red"});
+		jQuery("input[value='"+ defaultLayoutId +"']").attr("checked","checked");
+		/*2.为所有的布局选择单选按钮绑定点击事件*/
+		jQuery("INPUT[class='ui-layout-radio-class']").bind("click",function(){
+			jQuery(".ui-layout-img-class").css({"border":"1px solid #FFF"});
+		    var colum=jQuery(this).parents(".ui-layout-div-css");
+		    colum.find(".ui-layout-img-class").css({"border":"1px solid red"});
+		    var layoutId=colum.find(".ui-layout-radio-class").val();
+		    checkedLayoutId = layoutId;
+		    /**2.1 请求布局列的JSON数组。如果已经加载到客户端，则不需要重新请求*/
+		    var e = dataLayoutController.get(layoutId);
+		    if(e)return;
+		    /**2.2 如果没有载入到客户端，则重新请求服务器进行数据加载*/
+		    var url="${ctx}/getLayoutData?layoutId="+layoutId;
+			jQuery.post(url,"",function(transport){
+				 var layoutJSON= transport.evalJSON();   
+				 /**将数据存储数据到客户端*/
+				 storeLayoutData(layoutJSON);
+			});
+		}); 
+	} 
+	
+	function initEvent(){
+		//为布局应用绑定事件
+		jQuery("#applyLayout").bind("click",function(){
+			if(checkedLayoutId=='' || checkedLayoutId==defaultLayoutId){
+				alert("<fmt:message key='credithc.sys.homepage.layout.checked.info' bundle='${systemBundle}'></fmt:message>");
+				data = {layoutId:'',columns:[]};
+				return false;
+			}
+			if(!confirm("<fmt:message key='credithc.sys.homepage.layout.app.tag' bundle='${systemBundle}'></fmt:message>")){
+				return false;
+			}
+			data = dataLayoutController.get(checkedLayoutId);
+			top.firstPage.applyLayout(data);
+		});
+	};
+	
+	/**
+	* 将布局信息存储
+	**/
+	function storeLayoutData(layoutJSON){
+		/**新增布局信息*/
+		dataLayoutController.add(layoutJSON.layoutId);
+		/**新增列信息*/
+		layoutJSON.columns.each(function(column,indx){
+			dataLayoutController.addColumn(layoutJSON.layoutId,column.columnId,column.width);
+		});
+	}
+</script>
+	</head>
+	<body>
+		<div class="easyui-layout" data-options="fit:true">
+			<div data-options="region:'center'" style="border:4px solid #FFF;">
+				<fieldset style="overflow: auto; height:300px;">
+					<legend><fmt:message key="credithc.sys.homepage.layout.checked.css" bundle="${systemBundle}"></fmt:message></legend>
+					<c:forEach items="${layoutList}" var="list">
+						<div class="ui-layout-div-css">
+							<div style="vertical-align:middle;">
+								<img class="ui-layout-img-class" 
+									src="${ctx}/${list.pageLayoutId}/attachFileDown?attachFileType=pageLayOutAttach" imgId="${list.pageLayoutId}"/>
+							</div>
+							<div style="vertical-align:middle;">
+								<input class="ui-layout-radio-class" id="colum${list.pageLayoutId}"
+									type="radio" name="colum" value="${list.pageLayoutId}"/>
+							</div>
+						</div>  
+					</c:forEach>
+				</fieldset>
+			</div>
+		 	<div data-options="region:'south'" class="buttons">
+		 		<input id="applyLayout" type="button" class="button" value="<fmt:message key="credithc.sys.homepage.layout.app" bundle="${systemBundle}"></fmt:message>"/>
+		 	</div>
+		</div>
+	</body>
+</html>

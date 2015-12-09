@@ -1,0 +1,52 @@
+package citic.gack.sso.mapper;
+
+import java.util.List;
+
+import citic.gack.sso.admin.dto.MenuCatalogDTO;
+import citic.gack.sso.admin.dto.RolePermissionDTO;
+import citic.gack.sso.base.BaseMapper;
+import citic.gack.sso.base.exception.SysException;
+import citic.gack.sso.entity.SysMenuCatalog;
+
+public interface MenuCatalogMapper extends BaseMapper<MenuCatalogDTO> {
+
+	public String queryCount(SysMenuCatalog entity);
+
+	/**
+	 * 通过菜单查询与其匹配的菜单目录
+	 * 
+	 * @param menuCatalogIds
+	 *            菜单目录编号
+	 * @return 菜单目录
+	 * @throws SysException
+	 *             系统异常
+	 */
+	public List<SysMenuCatalog> queryMenuCatalogByMenu(String[] menuCatalogIds);
+
+	/**
+	 * 查询在用的菜单目录
+	 * 
+	 * @return 菜单目录
+	 * @throws SysException系统异常
+	 * 
+	 */
+	public List<SysMenuCatalog> queryActioeMenuCatalog();
+
+	/**
+	 * 查询在用的菜单目录(RolePermissionDOM角色授权时候要用此方法)
+	 * 
+	 * @return 菜单目录
+	 * @throws SysException系统异常
+	 * 
+	 */
+	public List<RolePermissionDTO> queryMenuCataLog(RolePermissionDTO mvo);
+
+	/**
+	 * 查询在用的菜单目录(SysUserPermissionDOM角色授权时候要用此方法)
+	 * 
+	 * @return 菜单目录
+	 * @throws SysException系统异常
+	 * 
+	 */
+	public List<SysMenuCatalog> querySysUserMenuCataLog(RolePermissionDTO mvo);
+}

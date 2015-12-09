@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.PermissionMapper">
+	<insert id="save" parameterType="citic.gack.sso.entity.SysPermission">
+		insert into SYS_PERMISSION
+		(PERMISSION_ID,operator_id,creator_id, ROLE_ID, MENU_CATALOG_ID, MENU_ID,
+		STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR)
+		values (#{permissionId} ,#{creatorId},#{creatorId},#{roleId}
+		,#{menuCatalogId ,jdbcType=VARCHAR} ,#{menuId ,jdbcType=VARCHAR} ,#{sts}
+		,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator})
+
+	</insert>
+
+
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysPermission">
+		update SYS_PERMISSION
+		set
+		ROLE_ID=#{roleId},operator_id=#{operatorId} ,MENU_CATALOG_ID=#{menuCatalogId ,jdbcType=VARCHAR}
+		,MENU_ID=#{menuId ,jdbcType=VARCHAR}
+		,STS=#{sts}
+		,OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1 where
+		PERMISSION_ID=#{permissionId}  
+
+	</update>
+
+	<delete id="deleteById" parameterType="citic.gack.sso.entity.SysPermission">
+
+		update SYS_PERMISSION
+		set
+		STS=#{sts},operator_id=#{operatorId}
+		,  OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1 where
+		PERMISSION_ID=#{permissionId}
+
+	</delete>
+	
+	
+	<delete id="deleteByRoleId" parameterType="java.lang.String">
+
+		update SYS_PERMISSION
+		set
+		STS=#{sts},operator_id=#{operatorId}
+		,  OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1 where
+		role_id=#{roleId}
+
+	</delete>
+
+	<select id="queryList" resultType="citic.gack.sso.entity.SysPermission"
+		parameterType="citic.gack.sso.entity.SysPermission">
+		select * from SYS_PERMISSION
+	</select>
+
+
+	<select id="queryById" resultType="citic.gack.sso.entity.SysPermission"
+		parameterType="citic.gack.sso.entity.SysPermission">
+
+		select PERMISSION_ID,operator_id,creator_id,VERSION, ROLE_ID, MENU_CATALOG_ID, MENU_ID,
+		STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from
+		SYS_PERMISSION where 1=1 and
+		PERMISSION_ID=#{permissionId}
+	</select>
+
+	<select id="queryListByPage" resultType="citic.gack.sso.entity.SysPermission"
+		parameterType="citic.gack.sso.entity.SysPermission">
+		select PERMISSION_ID,operator_id,creator_id, ROLE_ID, MENU_CATALOG_ID, MENU_ID, STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from
+		SYS_PERMISSION where 1=1 AND STS='A'
+		<if test="condition.permissionId!=null and condition.permissionId!=''">
+			and PERMISSION_ID like '%' #{condition.permissionId} '%'
+		</if>
+		<if test="condition.roleId!=null and condition.roleId!=''">
+			and ROLE_ID like '%' #{condition.roleId} '%'
+		</if>
+		<if test="condition.menuCatalogId!=null and condition.menuCatalogId!=''">
+			and MENU_CATALOG_ID like '%' #{condition.menuCatalogId}
+			'%' </if>
+		<if test="condition.menuId!=null and condition.menuId!=''">
+			and MENU_ID like '%' #{condition.menuId} '%' </if>
+		<if test="condition.operateDate!=null and condition.operateDate!=''">
+			and OPERATE_DATE like '%'
+			str_to_date(#{condition.operateDate},'yyyy-mm-dd
+			hh24:mi:ss') '%'
+		</if>
+		<if test="condition.sts!=null and condition.sts!=''">
+			and STS like '%' #{condition.sts}'%'
+		</if>
+		<if test="condition.createDate!=null and condition.createDate!=''">
+			and CREATE_DATE like '%'
+			str_to_date(#{condition.createDate},'yyyy-mm-dd
+			hh24:mi:ss') '%'
+		</if>
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if>
+	</select>
+
+	<update id="deleteMenuPermission" parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+
+		update
+		SYS_PERMISSION set STS='P',operator_id=#{operatorId} where MENU_ID=#{menuId} and ROLE_ID=#{roleId}
+
+	</update>
+
+	<update id="deleteMenuPermissionByMenu" parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+
+		update
+		SYS_PERMISSION set STS='P',operator_id=#{operatorId} where MENU_ID=#{menuId}
+
+	</update>
+	<update id="deleteMenuCatalogPermission" parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+
+		update
+		SYS_PERMISSION set STS='P',operator_id=#{operatorId} where MENU_CATALOG_ID=#{menuCatalogId} and
+		ROLE_ID=#{roleId}
+
+	</update>
+
+	<select id="queryMenuPermission" resultType="citic.gack.sso.entity.SysPermission"
+		parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+
+		select PERMISSION_ID,operator_id,creator_id, ROLE_ID, MENU_CATALOG_ID, MENU_ID,
+		STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from
+		SYS_PERMISSION where STS='A' and MENU_ID is not null
+		<if test="menuId!=null and menuId!=''">
+			and MENU_ID = #{menuId}
+		</if>
+		<if test="roleId!=null and roleId!=''">
+			and ROLE_ID = #{roleId}
+		</if>
+
+	</select>
+
+	<select id="queryMenuCatalogPermission" resultType="citic.gack.sso.entity.SysPermission"
+		parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+
+		select PERMISSION_ID,operator_id,creator_id, ROLE_ID, MENU_CATALOG_ID, MENU_ID,
+		STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from
+		SYS_PERMISSION where STS='A' and MENU_CATALOG_ID is not null
+		<if test="menuCatalogId!=null and menuCatalogId!=''">
+			and MENU_CATALOG_ID = #{menuCatalogId}
+		</if>
+		<if test="roleId!=null and roleId!=''">
+			and ROLE_ID = #{roleId}
+		</if>
+
+	</select>
+	<select id="queryMenuPermissionByMenu" resultType="citic.gack.sso.entity.SysPermission"
+		parameterType="citic.gack.sso.entity.SysMenu">
+
+		select PERMISSION_ID, ROLE_ID,operator_id,creator_id, MENU_CATALOG_ID, MENU_ID,
+		STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from
+		SYS_PERMISSION where STS='A' and MENU_ID = #{menuId}
+
+	</select>
+	<select id="queryMenuOrCatalogPermission" resultType="citic.gack.sso.entity.SysPermission"
+		parameterType="java.lang.String">
+		select PERMISSION_ID, ROLE_ID,operator_id,creator_id, MENU_CATALOG_ID, MENU_ID,
+		STS,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from
+		SYS_PERMISSION where STS='A' and ROLE_ID = #{roleId}
+		
+		 <choose>  
+        <when test="type!=null and type=='menu'">  
+           and MENU_ID is not null
+        </when>   
+        <otherwise>  
+          and MENU_CATALOG_ID is not null
+        </otherwise>  
+   		 </choose>  
+		 
+	</select>
+ 
+</mapper>

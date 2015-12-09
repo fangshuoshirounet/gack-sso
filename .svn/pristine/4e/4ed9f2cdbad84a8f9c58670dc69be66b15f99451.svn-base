@@ -1,0 +1,77 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+	  <div class="info-form" data-options="region:'center'">
+		<fieldset>
+			<legend><fmt:message key="credithc.sys.bulletin.info" bundle="${systemBundle}"></fmt:message></legend>
+			<table class="table-info">
+					<tr><th>
+						<label><fmt:message key="credithc.sys.bulletin.title" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.title}
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.bulletin.type" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<tags:showlabel-status tableName="BULLETIN" columnName="TYPE" value="${model.type}"></tags:showlabel-status>
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.bulletin.releaser" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.creator}
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.bulletin.release.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.releaseDate}
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.bulletin.end.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.endDate}
+					</td></tr>
+					
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<tags:showlabel-status tableName="BULLETIN" columnName="STS" value="${model.sts}"></tags:showlabel-status>
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.operateDate}
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.createDate}
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.bulletin.attachment" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<a href="#" onclick="downloadFile(${model.bulletinId})">${model.fileName}</a>
+					</td></tr> 
+					<tr  class="row3"><th>
+						<label><fmt:message key="credithc.sys.bulletin.content" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<textarea name="content" readOnly="readonly" style="width:100%">${model.content}</textarea>
+						 
+					</td></tr>
+			</table>
+		</fieldset>
+		</div>
+		 <div class="buttons" data-options="region:'south'">
+           <input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+        </div>
+	</form>
+</div>
+	   
+<script type="text/javascript">
+//<!CDATA[
+	$(function() {
+		//关闭页面
+		$("#closeSubmitBtn").click(function() {
+			 top.closeDialog();
+		});
+	});
+	//查询附件	
+	function downloadFile(id){
+		url="${ctx}/public/bulletin/"+id+"/queryFile?radom="+Math.random();
+		window.open(url,'_blank');
+	}
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

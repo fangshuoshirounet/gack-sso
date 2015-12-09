@@ -1,0 +1,30 @@
+package citic.gack.sso.base;
+
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+public class BaseDTO<T extends BaseModel> implements Serializable {
+
+	@JsonIgnore
+	private T entity;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	public BaseDTO(T t){
+		this.entity = t;
+	}
+	
+	public BaseDTO(){
+	}
+	
+	public T getEntity(){
+		return entity;
+	}
+	
+	public void setEntity(T entity){
+		this.entity = entity;
+	}
+}

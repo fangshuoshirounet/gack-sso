@@ -1,0 +1,28 @@
+package citic.gack.sso.web.security;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import citic.gack.sso.entity.RegstUser;
+
+public class SecUserDetailsService implements UserDetailsService {
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		RegstUser user = new RegstUser();
+		user.setUserId(1);
+		user.setEmail("test@test.com");
+		user.setPassword("098f6bcd4621d373cade4e832627b4f6");
+		user.setStatus(1);
+		List<GrantedAuthority>  authorities = new ArrayList<GrantedAuthority>();
+		authorities.add(new SimpleGrantedAuthority("USERMANAGE:USER:ME"));
+		return new citic.gack.sso.web.security.SecUserDetails(user,authorities);
+	}
+
+}

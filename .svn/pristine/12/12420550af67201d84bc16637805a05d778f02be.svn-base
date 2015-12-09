@@ -1,0 +1,156 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="com.credithc.csm.dto.BulletinDTO,java.util.List"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+
+<%
+	List<BulletinDTO> list=(List<BulletinDTO>)request.getAttribute("list");
+%>
+ <style type="text/css">
+        .adv
+        {
+            padding-right: 2px;
+            float: center;
+            padding-top: 1px;
+           
+        } 
+        .ifocus_pic
+        {
+            overflow: hidden;
+            width: 568px;
+            position: relative;
+            height: 250px;
+            background-color:#FFF;
+            Color:#000;
+        }
+         .ifocus_piclist
+        {
+            left: 0px;
+            position: absolute;
+            top: 0px;
+            height:auto;  
+            line-height:25px;    
+            overflow:hidden;   
+        }
+         .ifocus_btn
+        {
+            font-size: 14px;
+            right: 0px;
+            bottom: 5px;
+            position: absolute;
+            text-align: center;
+        } 
+         .ifocus_btn LI
+        {
+            border: #366DA5 1px solid;
+            margin-top: 2px;
+            background: #ffffff;
+            float: left;
+            width: 15px;
+            cursor: pointer;
+            color: #366DA5;
+            margin-right: 5px;
+            height: 15px;
+        } 
+        .ifocus_btn .current
+        {
+            border: #ffffff 1px solid;
+            margin-top: 0px;
+            font-weight: bold;
+            font-size: 18px;
+            background: #366DA5;
+            width: 20px;
+            color: #ffffff;
+            height: 20px;
+        }
+        .undis
+        {
+            display: none;
+        } 
+ </style>
+
+
+ <div class="adv">
+      <div class="ifocus_pic">
+          <ul class="ifocus_piclist">
+          	  <%if(list.size()==0){ %>
+	        	   <li>暂无公告</li>
+	          <%}
+          	  else if(list.size()<5 && list.size()>=1){ %>
+	        	  <%for(int i=0;i<list.size();i++){ %>
+	        	   <li><%=list.get(i).getContent()%></li>
+	            <%}%> 
+	          <%}else{ %>
+		           <%for(int j=0;j<5;j++){%>
+		           <li><%=list.get(j).getContent()%></li>
+		           <%}%>
+		      <%}%>       
+           </ul>
+           <ul class="ifocus_btn">    
+              <%if(list.size()<5 && list.size()>=1){%>             
+                   <li class="current">1</li>
+                   <%for(int i=0;i<list.size()-1;i++){%>
+                       <li ><%=i+2%></li>
+                   <%}%>
+              <%}else{ %>
+                  <li class="current">1</li>
+                  <li >2</li>
+                  <li >3</li>
+                  <li >4</li>
+                  <li >5</li>
+              <%}%>
+          </ul>
+      </div>
+</div>
+
+
+<script language="javascript">
+$(document).ready(function() {
+        var currentIndex = 0;
+        var d; //函数对象
+        var pictureID = 0; //索引ID
+        var l = $(".ifocus_piclist li").length;
+		$('.ifocus_piclist li:not(:first)').hide();
+        autoScroll();
+        $(".ifocus_btn li").hover(function() {
+            StopScrolll();
+            $(".ifocus_btn li").removeClass("current");//所有的li去掉当前的样式加上正常的样式
+            $(this).addClass("current"); //而本身则加上当前的样式去掉正常的样式
+            pictureID = $(this).html() - 1;
+            $(".ifocus_piclist li").eq(pictureID).fadeIn("slow"); //本身显示
+            $(".ifocus_piclist li").not($(".ifocus_piclist li")[pictureID]).hide(); //除了自身别的全部隐藏
+        }, function() {
+            //当鼠标离开对象的时候获得当前的对象的ID以便能在启动自动时与其同步
+            pictureID = $(this).html() - 1; //取当前元素的ID
+            currentIndex = pictureID;
+            autoScroll();
+        });
+        //自动滚动
+        function autoScroll() {
+            $(".ifocus_btn li:last").removeClass("current");
+            $(".ifocus_btn li").eq(currentIndex).addClass("current");
+            $(".ifocus_btn li").eq(currentIndex - 1).removeClass("current");
+            $(".ifocus_piclist li").eq(currentIndex).fadeIn("slow");
+            $(".ifocus_piclist li").eq(currentIndex - 1).hide();
+            currentIndex++; currentIndex = currentIndex >= l ? 0 : currentIndex;
+            d = setTimeout(autoScroll, 3000);
+        }
+        function StopScrolll()//当鼠标移动到对象上面的时候停止自动滚动
+        {
+            clearTimeout(d);
+        }
+        //标签换样式
+        var fodTime = 0;
+        $("ul.txtTab li").hover(function() {
+            if ($(this).hasClass("current")) return;
+            var obj = $(this);
+            clearTimeout(fodTime); fodTime = 0; fodTime = setTimeout(function() {
+                obj.addClass("current").siblings().removeClass();
+                var o = obj.parent().parent().siblings().children(".undis");
+                var q = obj.parent().siblings(".undis");
+                q.removeClass("undis").siblings("a").addClass("undis");
+                o.removeClass("undis").siblings().addClass("undis");
+            }, 250);
+        },
+    function() { clearTimeout(fodTime); fodTime = 0; }
+    );
+});
+</script>

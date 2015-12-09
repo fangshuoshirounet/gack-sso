@@ -1,0 +1,33 @@
+package citic.gack.sso.web.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import citic.gack.sso.base.BaseController;
+import citic.gack.sso.base.ResponseResult;
+import citic.gack.sso.base.exception.SysException;
+import citic.gack.sso.web.dto.UserDTO;
+import citic.gack.sso.web.service.SecUserService;
+
+@Controller
+@RequestMapping("/user")
+public class UserResourceController extends BaseController<UserDTO>{
+
+	@Autowired
+	private SecUserService secUserDetailsService;
+	
+	@RequestMapping(method=RequestMethod.POST)
+	public @ResponseBody ResponseResult regist(@RequestBody UserDTO userDTO){
+		UserDTO resultBean = null;
+		try{
+			resultBean = secUserDetailsService.insert(userDTO);
+		}catch(SysException e){
+			return new ResponseResult(false, e.getErrId(),resultBean);
+		}
+		return new ResponseResult(true, "用户注册成功",resultBean);
+	}
+}

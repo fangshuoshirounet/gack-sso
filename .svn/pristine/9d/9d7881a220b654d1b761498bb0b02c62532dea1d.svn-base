@@ -1,0 +1,98 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle" />
+<div class="easyui-layout" data-options="fit:true">
+	<div class="info-form" data-options="region:'center'">
+		<form method="post" id="editForm">
+			<input name="sysConfigId" value="${model.sysConfigId}" type="hidden" />
+			<input name="createDate" value="${model.createDate}" type="hidden"/>
+		<input name="creator" value="${model.creator}" type="hidden"/>
+		<input name="version" value="${model.version}" type="hidden"/>
+			<fieldset>
+				<legend>
+					<fmt:message key="credithc.sys.config.info" bundle="${systemBundle}"></fmt:message>
+				</legend>
+				<table class="table-info">
+					<tr>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.config.name" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><input class="easyui-validatebox" type="text" name="name"
+							value="${model.name}" maxlength="20" required="true" /></td>
+					</tr>
+					<tr>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.config.type" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><tags:combobox-status tableName="SYS_CONFIG"
+								columnName="CONFIG_TYPE" name="configType" style="width:182px;"
+								value="${model.configType}"></tags:combobox-status></td>
+					</tr>
+					<tr>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.config.cur.value" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><input class="easyui-validatebox" type="text"
+							name="curValue" value="${model.curValue}" maxlength="32"
+							required="true"></input></td>
+					</tr>
+					<tr class="row2">
+						<th><label><fmt:message
+									key="credithc.sys.status.field.desc" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><textarea name="valueDesc">${model.valueDesc}</textarea>
+						</td>
+					</tr>
+				</table>
+			</fieldset>
+		</form>
+	</div>
+	<div class="buttons" data-options="region:'south'">
+		<button class="button" id="btnSubmit">
+			<fmt:message key='credithc.sys.button.submit' bundle='${systemBundle}'></fmt:message>
+		</button>
+		<button class="button" id="btnCancel">
+			<fmt:message key='credithc.sys.button.cancel' bundle='${systemBundle}'></fmt:message>
+		</button>
+	</div>
+</div>
+<script type="text/javascript">
+	//<![CDATA[
+	$(function() {
+		$(".info-form input[type='text']").css({
+			"width" : "180px"
+		});
+		//验证
+		var key = "${model.sysConfigId}";
+		$("#editForm")
+				.ajaxForm(
+						{
+							url : "${ctx}/public/sysconfig/" + key
+									+ ".json?_method=PUT",
+							beforeSubmit : function(formData, jqForm) {
+								return jqForm.form('validate');
+							},
+							success : function(data) {
+								$.messager
+										.show({
+											title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',
+											msg : data.message,
+											timeout : 1000,
+											showType : 'slide'
+										});
+								top.closeDialog();
+								getDtt().refresh();
+							}
+						});
+
+		//表单提交
+		$("#btnSubmit").click(function() {
+			$("#editForm").submit();
+		});
+
+		//重置页面
+		$("#btnCancel").click(function() {
+			top.closeDialog();
+		});
+
+	});
+	//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

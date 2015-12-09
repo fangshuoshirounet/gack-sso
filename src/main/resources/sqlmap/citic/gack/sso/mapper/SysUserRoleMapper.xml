@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.SysUserRoleMapper">
+	<select id="queryListByPage" resultType="citic.gack.sso.entity.SysUserRole"
+		parameterType="citic.gack.sso.entity.SysUserRole">
+
+		select S.SysUserRole_ID, S.NAME, S.REMARKS, S.STS,s.operator_id,s.creator_id,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from sys_user_role
+		where 1=1 AND STS='A'
+		<if test="page.sortName!=null">
+			order by ${page.sortNameName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortNameOrder}
+		</if>
+
+
+	</select>
+
+	<select id="queryUserRoleByPage" resultType="citic.gack.sso.admin.dto.RoleDTO"
+		parameterType="citic.gack.sso.entity.SysUserRole">
+
+		SELECT SYS_USER_ROLE.ROLE_ID, role.ROLE_NAME FROM SYS_USER_ROLE left join role on SYS_USER_ROLE.ROLE_ID=role.ROLE_ID
+		WHERE SYS_USER_ROLE.sts='A' and 
+		SYS_USER_ROLE.SYS_USER_ID=  #{condition.sysUserId} 
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if> 
+	</select>
+
+
+	<insert id="save" parameterType="citic.gack.sso.entity.SysUserRole">
+		insert into SYS_USER_ROLE
+		(SYS_USER_ROLE_ID,operator_id,creator_id,ROLE_ID,SYS_USER_ID, 
+		STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR)
+		values
+		(#{sysUserRoleId},#{creatorId},#{creatorId},
+		#{roleId},
+		#{sysUserId}, 
+		#{sts},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator})
+	</insert>
+
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysUserRole">
+		update SYS_USER_ROLE
+		set ROLE_ID=#{roleId} ,
+		SYS_USER_ID=#{sysUserId} ,operator_id=#{operatorId},
+		STS=#{sts} ,
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1,
+		REMARKS=#{remarks}
+		where SYS_USER_ROLE_ID=#{sysUserRoleId} and  VERSION=#{version}
+	</update>
+
+
+	<update id="deleteUserRoleByUserId" parameterType="java.lang.String">
+		delete from  SYS_USER_ROLE  
+		where SYS_USER_ID=#{sysUserId}
+	</update>
+	<update id="deleteById" parameterType="citic.gack.sso.entity.SysUserRole">
+		update SYS_USER_ROLE
+		set STS=#{sts} ,operator_id=#{operatorId},
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where SYS_USER_ROLE_ID=#{sysUserRoleId}
+	</update>
+
+
+	<select id="queryList" resultType="citic.gack.sso.entity.SysUserRole">
+		select SYS_USER_ROLE_ID,operator_id,creator_id,ROLE_ID,SYS_USER_ID,REMARKS,STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from SYS_USER_ROLE
+	</select>
+
+	<select id="querySysUserRole" resultType="citic.gack.sso.entity.SysRole"
+		parameterType="String">
+		select b.ROLE_ID,b.ROLE_NAME,b.ROLE_DESC,b.STS, date_format(b.OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(b.CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,b.operator,b.creator,b.ROLE_CODE 
+		from SYS_USER_ROLE a, SYS_ROLE b WHERE a.ROLE_ID=b.ROLE_ID and a.STS='A'
+		and b.STS='A' and a.ROLE_ID=b.ROLE_ID and a.SYS_USER_ID=#{sysUserId}
+	</select>
+	<!-- 查询除了管理员意外的所有账号 -->
+	<select id="queryById" resultType="citic.gack.sso.entity.SysUserRole"
+		parameterType="citic.gack.sso.entity.SysUserRole">
+		select
+		SYS_USER_ROLE_ID,operator_id,creator_id,VERSION,ROLE_ID,SYS_USER_ID,REMARKS,STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from SYS_USER_ROLE where SYS_USER_ROLE_ID=#{sysUserRoleId}
+	</select>
+</mapper>

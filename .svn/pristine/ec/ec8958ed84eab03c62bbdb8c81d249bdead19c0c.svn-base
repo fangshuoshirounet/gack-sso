@@ -1,0 +1,176 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<script type="text/javascript" src="${ctx}/resources/ckeditor/ckeditor.js"></script>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle" />
+<div class="easyui-layout" data-options="fit:true">
+	<div class="info-form" data-options="region:'center'">
+		<form method="post" id="editForm" enctype="multipart/form-data">
+			<input type="hidden" name="bulletinId" value="${model.bulletinId}"></input>
+			<input name="createDate" value="${model.createDate}" type="hidden"/>
+		<input name="creator" value="${model.creator}" type="hidden"/>
+		<input name="version" value="${model.version}" type="hidden"/>
+			<input type="hidden" name="bulletinAttachmentId"
+				value="${model.bulletinAttachmentId}"></input> <input type="hidden"
+				name="sts" value="${model.sts}"></input>
+			<fieldset>
+				<legend>
+					<fmt:message key="credithc.sys.bulletin.info"
+						bundle="${systemBundle}"></fmt:message>
+				</legend>
+				<table class="table-info">
+					<tr>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.bulletin.title" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><input type="text" class="easyui-validatebox"
+							name="title" value="${model.title}" required="true"
+							maxlength="20"></input></td>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.bulletin.type" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><tags:combobox-status tableName="BULLETIN"
+								value="${model.type }" columnName="TYPE" name="type"
+								style="width:182px"></tags:combobox-status></td>
+					</tr>
+					<tr>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.bulletin.release.date"
+									bundle="${systemBundle}"></fmt:message></label></th>
+						<td><input type="text" class="easyui-validatebox"
+							id="stratDate" name="releaseDate" value="${model.releaseDate}"
+							onfocus="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',maxDate:'#F{$dp.$D(\'endDate\')||\'2020-10-01\'}'})"
+							required="true"></input></td>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.bulletin.releaser" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><input type="text" class="easyui-validatebox"
+							maxlength="8" name="creator" value="${model.creator}"
+							required="true"></input></td>
+					</tr>
+					<tr>
+						<th><label><fmt:message
+									key="credithc.sys.bulletin.attachment" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><c:if test="${model.fileName!=null}">
+								<a href="#" id="oldFile"
+									style="text-decoration: none; color: #000;">${model.fileName}</a>
+								<input type="hidden"  id="flg" name="flg" value="1" >
+								<input type="file" id="newFile" style="display: none"
+							name="attachment" />
+							</c:if> 
+							<c:if test="${model.fileName==null}">
+								<input type="file" id="newFile" style="width: 182px"
+									name="attachment" />
+							</c:if> </td>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.bulletin.end.date" bundle="${systemBundle}"></fmt:message></label></th>
+						<td><input type="text" class="easyui-validatebox"
+							id="endDate" name="endDate" value="${model.endDate}"
+							onfocus="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',minDate:'#F{$dp.$D(\'stratDate\')}',maxDate:'2020-10-01'})"
+							required="true"></input></td>
+					</tr>
+					<tr>
+						<th><label class="required"><fmt:message
+									key="credithc.sys.bulletin.content" bundle="${systemBundle}"></fmt:message></label></th>
+						<td colspan="3"><textarea name="content" id="content" maxlength="4000">
+					<c:out value="${model.content}" />
+				         </textarea></td>
+					</tr>
+				</table>
+			</fieldset>
+		</form>
+	</div>
+	<div class="buttons" data-options="region:'south'">
+		<button class="button" id="btnRmFile">
+			<fmt:message key="credithc.sys.bulletin.attachment.delete"
+				bundle="${systemBundle}"></fmt:message>
+		</button>
+		<button class="button" id="btnSubmit">
+			<fmt:message key='credithc.sys.button.submit'
+				bundle='${systemBundle}'></fmt:message>
+		</button>
+		<button class="button" id="btnCancel">
+			<fmt:message key='credithc.sys.button.cancel'
+				bundle='${systemBundle}'></fmt:message>
+		</button>
+	</div>
+</div>
+<div id='loading'
+	style='position: absolute; left: 0; width: 100%; height: 100%; top: 27px; background: #E0ECFF; opacity: 0.8; filter: alpha(opacity = 80); display: none'>
+	<div id="floater"
+		style='position: absolute; cursor1: wait; left: 240px; top: 150px; width: auto; height: 16px; padding: 12px 5px 10px 30px;'>
+		正在上传，请等待...</div>
+</div>
+
+<script type="text/javascript">
+	//<![CDATA[
+	CKEDITOR.replace("content", {});
+	var key = "${model.bulletinId}";
+	$(function() {
+
+		$('#editForm')
+				.ajaxForm(
+						{
+							url : "${ctx}/public/bulletin/updateFile",
+							dataType : 'json',
+							beforeSubmit : function(formData, jqForm) {
+								var content = CKEDITOR.instances.content
+										.getData();
+								if (jqForm.form('validate') && content != '') { 
+								 
+									return true;
+								}
+								return false;
+							},
+							success : function(data) {
+								getDtt().refresh();
+								top.closeDialog();
+								$.messager
+										.show({
+											title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',
+											msg : data.message,
+											timeout : 1000,
+											showType : 'slide'
+										});
+							}
+						});
+
+		//表单提交
+		$("#btnSubmit")
+				.click(
+						function() {
+							var content = CKEDITOR.instances.content.getData();
+							$('#content').val(CKEDITOR.instances.content.getData());
+							if (content == "") {
+								jQuery.messager
+										.alert(
+												'<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>:',
+												'<fmt:message key="credithc.sys.prompt.info.content" bundle="${systemBundle}"></fmt:message>',
+												'info');
+								return;
+							}
+							$("#editForm").submit();
+						});
+
+		//重置页面
+		$("#btnCancel").click(function() {
+			top.closeDialog();
+		});
+		//删除RmFile
+		$("#btnRmFile").click(function() {
+			var file = "${model.fileName}"; 
+			if (file == "") {
+				return;
+			}
+			$('#flg').val("0");
+			$('#oldFile').hide();
+			$('#newFile').show();
+		});
+	});
+
+	//查询附件	
+	function downloadFile(id) {
+		var url = "${ctx}/public/bulletin/" + id + "/queryFile?radom="
+				+ Math.random();
+		top.showPic(url);
+	}
+	//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

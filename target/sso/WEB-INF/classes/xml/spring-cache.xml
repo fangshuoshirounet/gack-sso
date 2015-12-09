@@ -6,7 +6,7 @@
 	<!-- »º´æ¹ÜÀí×é¼þºËÐÄÅäÖÃ -->
 	<!-- redis »º´æ¿ªÊ¼ -->
 	
-<!-- 	<bean id="redisCacheManager" class="citic.gack.web.sso.base.cache.RedisCacheManager"> -->
+<!-- 	<bean id="redisCacheManager" class="citic.gack.sso.base.cache.RedisCacheManager"> -->
 <!-- 		<property name="cacheConfig" ref="configuration" /> -->
 <!-- 		<property name="jdbcTemplate" ref="jdbcTemplate" />  -->
 <!-- 		<property name="redisUtil" ref="redisUtil" ></property> -->
@@ -26,13 +26,13 @@
 	<bean id="ehCacheManagerFactoryBean" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"> 
 		<property name="configLocation"> <value>classpath:xml/ehcache-config.xml</value> </property> 
 	</bean>
-	<bean id="cacheManager" class="citic.gack.web.sso.base.cache.CacheManager" destroy-method="shutdown" init-method="initialize" lazy-init="false">
+	<bean id="cacheManager" class="citic.gack.sso.base.cache.CacheManager" destroy-method="shutdown" init-method="initialize" lazy-init="false">
 		<property name="cacheManager" ref="ehCacheManager" />
 	</bean>
 	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
 		<property name="dataSource" ref="dataSource"></property>
 	</bean>
-	<bean id="ehCacheManager" class="citic.gack.web.sso.base.cache.ECacheManager">
+	<bean id="ehCacheManager" class="citic.gack.sso.base.cache.ECacheManager">
 		<property name="ehCacheManager" ref="ehCacheManagerFactoryBean" />
 		<property name="jdbcTemplate" ref="jdbcTemplate" />
 		<property name="cacheConfig" ref="configuration" />
@@ -40,11 +40,11 @@
 	<!-- ehCache »º´æ½áÊø -->
 
 
-	<bean id="configuration" class="citic.gack.web.sso.base.cache.CacheConfig">
+	<bean id="configuration" class="citic.gack.sso.base.cache.CacheConfig">
     	<property name="configuration">
 			<list> 
 				<!-- STATUS±íµÄ»º´æ£¬»º´æid-list -->
-<!-- 				<bean class="citic.gack.web.sso.base.cache.TableCacheConfig"> -->
+<!-- 				<bean class="citic.gack.sso.base.cache.TableCacheConfig"> -->
 <!-- 					<property name="cacheName" value="cprp.table.cache.idlist.enumerate" /> -->
 <!-- 					<property name="sql" -->
 <!-- 						value="select * from enumerate order by table_name, column_name, order_id" /> -->
@@ -61,7 +61,7 @@
 <!-- 				</bean> -->
 
 				<!-- STATUS±íµÄ»º´æ£¬»º´æid-value -->
-<!-- 				<bean class="citic.gack.web.sso.base.cache.TableCacheConfig"> -->
+<!-- 				<bean class="citic.gack.sso.base.cache.TableCacheConfig"> -->
 <!-- 					<property name="cacheName" value="cprp.table.cache.idvalue.enumerate" /> -->
 
 <!-- 					<property name="sql" -->
@@ -78,7 +78,7 @@
 <!-- 				</bean> -->
 
 				<!-- SYS_CONFIG±íµÄ»º´æ£¬»º´æid-value -->
-<!-- 				<bean class="citic.gack.web.sso.base.cache.TableCacheConfig"> -->
+<!-- 				<bean class="citic.gack.sso.base.cache.TableCacheConfig"> -->
 <!-- 					<property name="cacheName" value="cprp.table.cache.idvalue.sysconfig" /> -->
 <!-- 					<property name="sql" -->
 <!-- 						value="select sys_config_id as value, cur_value as label from sys_config" /> -->
@@ -93,7 +93,7 @@
 <!-- 				</bean>  -->
 				
 					<!-- SYS_CONFIG±íµÄ»º´æ£¬»º´æid-value -->
-<!-- 				<bean class="citic.gack.web.sso.base.cache.TableCacheConfig"> -->
+<!-- 				<bean class="citic.gack.sso.base.cache.TableCacheConfig"> -->
 <!-- 					<property name="cacheName" value="cprp.table.cache.idvalue.organization" /> -->
 <!-- 					<property name="sql" -->
 <!-- 						value="select  organization.org_id  as value, organization.name as label from organization where organization.sts ='A'" /> -->

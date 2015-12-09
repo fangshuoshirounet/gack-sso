@@ -42,7 +42,7 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
 	</typeAliases> -->
 	 
 	<plugins>
-		<plugin interceptor="citic.gack.web.sso.base.PageInterceptor">
+		<plugin interceptor="citic.gack.sso.base.PageInterceptor">
 			<property name="dialect" value="mysql" />
 		</plugin>
 	</plugins>

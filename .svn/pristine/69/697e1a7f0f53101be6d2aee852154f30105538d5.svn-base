@@ -1,0 +1,47 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+		<input type="hidden" name="staffId" value="${model.staffId}"/>
+        <div class="info-form" data-options="region:'center'">
+            <fieldset>
+                <legend><fmt:message key="credithc.sys.sysuser.info" bundle="${systemBundle}"></fmt:message></legend>
+                <table class="table-info">
+					<tr><th>
+						<label><fmt:message key="credithc.sys.user.login.name" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.sysUser.loginName}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.password.lose.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.sysUser.pwdInactiveTime}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label ><fmt:message key="credithc.sys.init.password" bundle="${systemBundle}"></fmt:message> y/n</label></th><td>
+							<tags:showlabel-status tableName="SYS_USER" columnName="INIT_PWD_FLAG" value="${model.sysUser.initPwdFlag}"/>
+					</td></tr>
+					<tr class="row2"><th>
+						<label><fmt:message key="credithc.sys.desc" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<textarea name="remarks" readonly="readonly">${model.sysUser.remarks}</textarea>
+					</td></tr>
+                </table>
+            </fieldset>
+        </div>
+        <div class="buttons" data-options="region:'south'">
+            <input type="button" class="button" id="closeBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+$(function(){
+	
+ });
+//重置页面
+$("#closeBtn").click(function(){
+	 top.closeDialog();
+}); 
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

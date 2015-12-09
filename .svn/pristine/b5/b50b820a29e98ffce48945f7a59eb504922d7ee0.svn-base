@@ -1,0 +1,71 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+       <div class="easyui-layout" data-options="fit:true">
+	     <form method="post" id="viewForm">
+			<div class="info-form" data-options="region:'center'">
+			  <fieldset>
+		 		 <legend><fmt:message key="credithc.sys.menu.info" bundle="${systemBundle}"></fmt:message></legend>
+		 		 <table class="table-info">
+					<tr><th>
+						<label class="norequired" ><fmt:message key="credithc.sys.menu.name" bundle="${systemBundle}"></fmt:message></label></th><td>${model.menuName}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired" ><fmt:message key="credithc.sys.menu.code" bundle="${systemBundle}"></fmt:message></label></th><td>${model.menuCode}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired" ><fmt:message key="credithc.sys.menu.desc" bundle="${systemBundle}"></fmt:message></label></th><td>${model.menuDesc}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired" ><fmt:message key="credithc.sys.menu.function.link" bundle="${systemBundle}"></fmt:message></label></th><td>${model.menuUrl}
+					</td></tr>
+					<tr><th>
+						<label class="norequired" ><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<tags:showlabel-status columnName="STS" tableName="MENU" value="${model.sts}"></tags:showlabel-status>&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired" ><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th><td>${model.operateDate}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired" ><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label></th><td>${model.createDate}&nbsp;
+					</td></tr>
+					<tr class="row2"><th>
+                        <label ><fmt:message key="credithc.sys.menu.operation" bundle="${systemBundle}"></fmt:message>：</label></th><td>
+						<span style="display:inline-block;width:210px;">
+							<c:forEach items="${operationList}" var="operation" varStatus="status">
+								<c:choose>
+									<c:when test="${operation.operationId == '1'}">
+										<span style="display:inline-block;width:93px"><input  style="width:20px" type="checkbox" onclick='this.checked=!this.checked' name="operationIds" readonly="readonly" checked="checked" value="${ operation.operationId}">${operation.operationName}</input></span>
+									</c:when>
+									<c:when test="${operation.checked}">
+										<span style="display:inline-block;width:93px"><input style="width:20px" type="checkbox" onclick='this.checked=!this.checked' name="operationIds" checked="checked"  value="${ operation.operationId}">${operation.operationName}</input></span>
+									</c:when>
+									<c:otherwise  >
+										<span style="display:inline-block;width:93px"><input   style="width:20px" type="checkbox" onclick='this.checked=!this.checked' name="operationIds" value="${ operation.operationId}">${operation.operationName}</input></span>
+									</c:otherwise>
+								</c:choose>
+								<c:if test="${status.count % 2 == 0}">
+									<br/>
+								</c:if>
+							</c:forEach>
+						</span>
+                    </td></tr>
+				</table>
+				</fieldset>
+	    </div>
+        <div class="buttons" data-options="region:'south'">
+		 	<input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+         </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+$(function(){
+		//关闭页面
+	 $("#closeSubmitBtn").click(function(){
+		 top.closeDialog();
+	 }); 
+});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

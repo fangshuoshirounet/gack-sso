@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.SysUserOperConstraintMapper">
+ 
+	<select id="queryListByPage" resultType="citic.gack.sso.entity.SysUserOperConstraint" parameterType="citic.gack.sso.entity.SysUserOperConstraint">
+		select OPER_CONSTRAINT_ID,operator_id,creator_id, CONSTRAINT_ID, MENU_OPERATION_ID, CATALOG_OPERATE_TYPE, STS, date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from SYS_USER_OPER_CONSTRAINT
+		where 1=1 AND  STS='A'
+		<if test="condition.operateDate != null and condition.operateDate != ''">
+			and  OPERATE_DATE like CONCAT(CONCAT('%',#{condition.operateDate}),'%')
+		</if>
+		<if test="condition.constraintId != null and condition.constraintId != ''">
+			and  CONSTRAINT_ID like CONCAT(CONCAT('%',#{condition.constraintId}),'%')
+		</if>
+		<if test="condition.sts != null and condition.sts != ''">
+			and  STS like CONCAT(CONCAT('%',#{condition.sts}),'%')
+		</if>
+		<if test="condition.catalogOperateType != null and condition.catalogOperateType != ''">
+			and  CATALOG_OPERATE_TYPE like CONCAT(CONCAT('%',#{condition.catalogOperateType}),'%')
+		</if>
+		<if test="condition.menuOperationId != null and condition.menuOperationId != ''">
+			and  MENU_OPERATION_ID like CONCAT(CONCAT('%',#{condition.menuOperationId}),'%')
+		</if>
+		<if test="condition.createDate != null and condition.createDate != ''">
+			and  CREATE_DATE like CONCAT(CONCAT('%',#{condition.createDate}),'%')
+		</if>
+		<if test="condition.operConstraintId != null and condition.operConstraintId != ''">
+			and  OPER_CONSTRAINT_ID like CONCAT(CONCAT('%',#{condition.operConstraintId}),'%')
+		</if>
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if>
+	</select>
+ 
+	<update id="deleteMenuOrCatelogSysUserOperConstraint" parameterType="citic.gack.sso.admin.dto.SysUserPermissionDTO">
+ 			update SYS_USER_OPER_CONSTRAINT set STS='P' ,   OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator} where CONSTRAINT_ID=#{constraintId}
+	</update>
+ 
+	<select id="searchMenuOrCatelogSysUserOperConstraint" parameterType="citic.gack.sso.admin.dto.SysUserPermissionDTO" resultType="citic.gack.sso.entity.SysUserOperConstraint">
+		 select OPER_CONSTRAINT_ID,operator_id,creator_id, CONSTRAINT_ID, MENU_OPERATION_ID, CATALOG_OPERATE_TYPE,STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_USER_OPER_CONSTRAINT where STS='A' and CONSTRAINT_ID=#{constraintId}
+	</select>
+	<insert id="save" parameterType="citic.gack.sso.entity.SysUserOperConstraint">
+		insert into SYS_USER_OPER_CONSTRAINT (
+			OPER_CONSTRAINT_ID,operator_id,creator_id,
+			CONSTRAINT_ID,
+			MENU_OPERATION_ID,
+			CATALOG_OPERATE_TYPE,
+			STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR
+		) values (
+			#{operConstraintId,jdbcType=VARCHAR} ,#{creatorId},#{creatorId},
+			#{constraintId,jdbcType=VARCHAR} ,
+			#{menuOperationId,jdbcType=VARCHAR} ,
+			#{catalogOperateType,jdbcType=VARCHAR} ,
+			#{sts,jdbcType=VARCHAR},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator}
+		)
+	</insert>
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysUserOperConstraint" >
+		update SYS_USER_OPER_CONSTRAINT set
+			CONSTRAINT_ID=#{constraintId},operator_id=#{operatorId} ,
+			MENU_OPERATION_ID=#{menuOperationId} ,
+			CATALOG_OPERATE_TYPE=#{catalogOperateType} ,
+			STS=#{sts} ,
+			OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where OPER_CONSTRAINT_ID=#{operConstraintId} and  VERSION=#{version}
+	</update>
+	<delete id="deleteById" parameterType="citic.gack.sso.entity.SysUserOperConstraint">
+		update SYS_USER_OPER_CONSTRAINT SET
+			STS=#{sts},operator_id=#{operatorId},
+			OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),VERSION=VERSION+1
+		where OPER_CONSTRAINT_ID=#{operConstraintId}
+	</delete>
+	<select id="queryList" parameterType="citic.gack.sso.entity.SysUserOperConstraint" resultType="citic.gack.sso.entity.SysUserOperConstraint">
+			select * from SYS_USER_OPER_CONSTRAINT
+	</select>
+	<select id="queryById" parameterType="citic.gack.sso.entity.SysUserOperConstraint" resultType="citic.gack.sso.entity.SysUserOperConstraint">
+		select OPER_CONSTRAINT_ID,operator_id,creator_id,VERSION, CONSTRAINT_ID, MENU_OPERATION_ID, CATALOG_OPERATE_TYPE, STS, date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_USER_OPER_CONSTRAINT where 1=1 and OPER_CONSTRAINT_ID=#{operConstraintId}
+	</select>
+</mapper>

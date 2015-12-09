@@ -1,0 +1,64 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+	  	 <div class="info-form" data-options="region:'center'">
+	  	 <fieldset>
+			<legend><fmt:message key="credithc.sys.pagelayout.info" bundle="${systemBundle}"></fmt:message></legend>
+			<table class="table-info">
+					<tr><th>
+						<label><fmt:message key="credithc.sys.pagelayout.name" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.pageLayoutName}&nbsp;
+					</td></tr>
+					
+<%-- 					<tr><th>
+						<label>缩略图</label>
+						<a href="#" onclick="downloadFile(${model.pageLayoutId})">附件</a>
+					</td></tr> --%>
+					
+					<tr class="row2"><th> 
+						<label ><fmt:message key="credithc.sys.pagelayout.desc" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<textarea   name="remarks" readonly>${model.setting}</textarea>
+					</td></tr>
+					 
+					<tr><th>
+						<label><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.createDate}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<tags:showlabel-status columnName="STS" tableName="PAGE_LAYOUT" value="${model.sts}"></tags:showlabel-status>
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.operateDate}&nbsp;
+					</td></tr>
+					<tr class="row2"><th>
+						<label  class="norequired"><fmt:message key="credithc.sys.remarks" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<textarea readonly="readonly"   name="remarks" >${model.description}</textarea>
+					</td></tr>
+			</table>
+		</div>
+		<div class="buttons" data-options="region:'south'">
+		 	<input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+         </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+	$(function() {
+		//关闭页面
+		$("#closeSubmitBtn").click(function() {
+			 top.closeDialog();
+		});
+	});
+	function downloadFile(id){
+		url="${ctx}/public/pagelayout/"+id+"/queryFile?radom="+Math.random();
+		top.showPic(url);
+		//window.open(url,'_blank');
+	}
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

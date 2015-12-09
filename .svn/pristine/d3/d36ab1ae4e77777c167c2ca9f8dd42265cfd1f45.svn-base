@@ -1,0 +1,72 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+		<div class="ToolTip_Form" id="table_loginInfoAdd">
+			<form method="post" id="editForm">
+			  <input type="hidden"   name="sysUserSettingId" value="${model.sysUserSettingId}" ></input>
+			  <input name="createDate" value="${model.createDate}" type="hidden"/>
+		<input name="creator" value="${model.creator}" type="hidden"/>
+		<input name="version" value="${model.version}" type="hidden"/>
+				<ul>
+					<li class="required">
+						<label><fmt:message key="credithc.sys.user.setting.id" bundle="${systemBundle}"></fmt:message></label>
+						<input type="text" class="easyui-validatebox"  name="sysUserSettingId" value="${model.sysUserSettingId}"   maxlength="20" required="true" placeholder=""></input>
+					</td></tr>
+					<li class="required">
+						<label><fmt:message key="credithc.sys.user.id" bundle="${systemBundle}"></fmt:message></label>
+						<input type="text" class="easyui-validatebox"  name="sysUserId" value="${model.sysUserId}"   maxlength="20" required="true" placeholder=""></input>
+					</td></tr>
+					<li class="required">
+						<label><fmt:message key="credithc.sys.user.setting.info" bundle="${systemBundle}"></fmt:message></label>
+						<input type="text" class="easyui-validatebox"  name="setting" value="${model.setting}"   maxlength="20" required="true" placeholder=""></input>
+					</td></tr>
+					<li class="required">
+						<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label>
+						<input type="text" class="easyui-validatebox"  name="sts" value="${model.sts}"   maxlength="20" required="true" placeholder=""></input>
+					</td></tr>
+					<li class="required">
+						<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label>
+						<input type="text" class="easyui-validatebox"  name="operateDate" value="${model.operateDate}"   maxlength="20" required="true" placeholder=""></input>
+					</td></tr>
+					<li class="required">
+						<label><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label>
+						<input type="text" class="easyui-validatebox"  name="createDate" value="${model.createDate}"   maxlength="20" required="true" placeholder=""></input>
+					</td></tr>
+					<tr><th>
+						<a href="#" class="easyui-linkbutton" id="editSubmitBtn" icon="icon-ok" ><fmt:message key='credithc.sys.button.submit' bundle='${systemBundle}'></fmt:message></a>
+						<a href="#" class="easyui-linkbutton" id="editRestBtn"   icon="icon-redo" ><fmt:message key='credithc.sys.button.cancel' bundle='${systemBundle}'></fmt:message></a>
+					</td></tr>
+				</table>
+			</form>
+	    </div>
+<script type="text/javascript">
+$(function(){
+	$(".info-form input[type='text']").css({"width": "180px"});
+	 //验证
+	 var key="${model.sysUserSettingId}";
+	 $('#editForm').ajaxForm({
+	    url:"${ctx}/public/sysusersetting/"+key+".json?_method=PUT", 
+	    beforeSubmit:function(formData, jqForm){
+            return jqForm.form('validate');
+        },
+		success:function(data){
+			 dtt.refresh();
+			 top.closeDialog();
+			$.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 1000,showType : 'slide'});
+		}
+	 });
+
+	 //表单提交
+     $("#editSubmitBtn").click(function(){
+		$("#editForm").submit();
+	 });
+	 
+	//重置页面
+	 $("#editRestBtn").click(function(){
+		$("#editForm")[0].reset();
+	 }); 
+	
+});
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

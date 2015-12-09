@@ -1,0 +1,213 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+    <!-- 目录左侧树 -->
+            <div class="tree" data-options="region:'west',split:true">
+			<div class="easyui-layout" data-options="fit:true">
+			<div id="p" data-options="region:'center'" title="<fmt:message key='credithc.sys.menuCatalog' bundle='${systemBundle}'></fmt:message>" fit="true" class="tree-center">
+				<table id="menuCatalogTree">
+				</table>   
+            </div>
+            <div id="menuCatalogMenuAll" data-options="region:'south'" class="tree-buttons">
+            	 
+            </div>
+        </div>
+    </div>
+    <!-- 中间区域 -->
+    <div class="no-border" data-options="region:'center'">
+        <div class="easyui-layout" data-options="fit:true">
+     	  <!-- 上部:查询表单 -->
+          	<div data-options="region:'north'" class="search">
+				<fieldset>
+					<legend><fmt:message key='credithc.sys.menuCatalog.manager' bundle='${systemBundle}'></fmt:message></legend>
+					<form id="serachForm">
+						<input type="hidden" name="parentCatalogId" id="parentCatalogId" />
+						<table class="search-table">
+							<tr>
+								<th><fmt:message key='credithc.sys.menuCatalog.name' bundle='${systemBundle}'></fmt:message></th>
+								<td><input type="text" name="catalogName" maxlength="20" /></td>
+								<td class="search-buttons">
+								<shiro:hasPermission name="security:menucatalog:query">
+								<input type="button" class="button" id="qryBtn" value="<fmt:message key='credithc.sys.button.query' bundle='${systemBundle}'></fmt:message>" />
+								<input type="button" class="button" id="resetBtn" value="<fmt:message key='credithc.sys.button.remove' bundle='${systemBundle}'></fmt:message>" />
+								</shiro:hasPermission>
+								</td>
+							</tr>
+						</table>
+					</form>
+				</fieldset>
+			</div>
+            <!-- 下部:显示列表-->
+           <div id="flexgrid" data-options="region:'center'" class="content">
+				<table id="flexTable"></table>
+			</div>
+			<div data-options="region:'south'" class="buttons">
+				<shiro:hasPermission name="security:menucatalog:view">
+				<input type="button" class="button" id="showBtn" value="<fmt:message key='credithc.sys.button.view' bundle='${systemBundle}'></fmt:message>" /> 
+				</shiro:hasPermission>
+				<shiro:hasPermission name="security:menucatalog:add">
+				<input type="button" class="button" id="addBtn" value="<fmt:message key='credithc.sys.button.add' bundle='${systemBundle}'></fmt:message>" /> 
+				</shiro:hasPermission>
+				<shiro:hasPermission name="security:menucatalog:edit">
+				<input type="button" class="button" id="editBtn" value="<fmt:message key='credithc.sys.button.edit' bundle='${systemBundle}'></fmt:message>" /> 
+				</shiro:hasPermission>
+				<shiro:hasPermission name="security:menucatalog:delete">
+				<input type="button" class="button" id="delBtn" value="<fmt:message key='credithc.sys.button.cancellation' bundle='${systemBundle}'></fmt:message>" />
+				</shiro:hasPermission>
+			</div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+<%-- 菜单目录树 --%>
+	function initTree(){
+		$('#menuCatalogTree').tree({  
+		   	url:"${ctx}/security/menucatalog/treejson",
+		   	onClick: function(node){
+		   		$("#parentCatalogId").val(node.id);
+		   		$("#flexTable").flexRefresh();
+		   		$("#parentCatalogId").val(node.id);
+		   		if(node.attributes=="true"){
+					$("#remove").css("display","none"); 
+			 	}else{
+					$("#remove").css("display",""); 
+			 	}
+			}
+		});  
+	}
+	$(function() {
+		initTree();
+<%-- 右侧主面板区域 --%>
+		$("#flexTable").flexigrid({
+			title:'<fmt:message key="credithc.sys.menuCatalog.list" bundle="${systemBundle}"></fmt:message>',
+			url : '${ctx}/security/menucatalog?search=true',
+			hiddenArea:[{name:"menuCatalogId"}],
+			colModel : [ 
+			   {display : '<fmt:message key="credithc.sys.menuCatalog.name" bundle="${systemBundle}"></fmt:message>',name : 'catalogName',width : 130,sortable : true,align : 'center',hide : false},
+			   {display : '<fmt:message key="credithc.sys.menuCatalog.parent" bundle="${systemBundle}"></fmt:message>',name : 'parentCatalogName',width : 125,sortable : true,align : 'center',hide : false},
+			   {display : '<fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message>',name : 'stsName',width : 120,sortable : false,align : 'center',hide : false},
+			   {
+					display: '<fmt:message key="credithc.sys.operation" bundle="${systemBundle}"></fmt:message>',
+					name: 'operate',
+					width: 120,
+					align: 'center',
+					operateColumn: [
+						            {html: '<shiro:hasPermission name="security:menucatalog:view"><a  name="showLink" href="#"><fmt:message key="credithc.sys.view" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'},
+									{html: '<shiro:hasPermission name="security:menucatalog:edit"><a name="editLink" href="#"><fmt:message key="credithc.sys.edit" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'},
+									{html: '<shiro:hasPermission name="security:menucatalog:delete"><a name="delLink" href="#"><fmt:message key="credithc.sys.cancellation" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'}
+								   ]
+				}
+			   ],
+				onSuccess :function(){
+		   			var parentCatalogId = $("#parentCatalogId").val();
+					if(parentCatalogId!=null&&parentCatalogId.length>0){
+						$("#flexTable tr ").each(function (n,tr){
+				   			var menuCatalogId = $(tr).find("input[name='menuCatalogId']").val();
+				   			if(parentCatalogId==menuCatalogId){
+				   				var input = $($(tr).children().eq(0));
+				   				var checkbox = input.find("input[type='checkbox']");
+				   				$(checkbox).attr("checked","checked");
+				   				if(n%2==0){
+				   					$(tr).attr("class","erow trSelected");
+				   				}else{
+				   					$(tr).attr("class","trSelected");
+				   				}
+				   				return false;
+				   			}
+			             });
+		            }
+		        }
+	    });
+		//查询
+		$("#qryBtn").live('click', function() {
+			$("#flexTable").flexRefresh();
+		});
+		//重置
+		$("#resetBtn").click(function() {
+			var  parentCatalogId = $("#parentCatalogId").val();
+			$("#serachForm")[0].reset();
+			$("#parentCatalogId").val(parentCatalogId);
+		});
+	});
+ 
+<%--按钮绑定操作 end--%>		
+//新增
+	$("#addBtn").click(function() {
+		var len = $('.trSelected').length;
+		if(len==0){
+			var parentCatalogId = $("#parentCatalogId").val();	
+			if (parentCatalogId != null && parentCatalogId.length > 0) {
+				var url = '${ctx}/security/menucatalog/new?parentCatalogId=' + parentCatalogId;
+				top.openDialog({href:url,hrefMode:"iframe",resizable: false,height: 174,width: 380,title: "<fmt:message key='credithc.sys.menuCatalog.add' bundle='${systemBundle}'></fmt:message>",modal: true});
+			} else {
+				var url = '${ctx}/security/menucatalog/new';
+				top.openDialog({href:url,hrefMode:"iframe",resizable: false,height: 174,width: 380,title: "<fmt:message key='credithc.sys.menuCatalog.add' bundle='${systemBundle}'></fmt:message>",modal: true});
+				top.load();			
+			}
+		}else if(len==1){
+			var parentCatalogId = getSelectRowByName("menuCatalogId");
+			var url = '${ctx}/security/menucatalog/new?parentCatalogId=' + parentCatalogId;
+				top.openDialog({href:url,hrefMode:"iframe",resizable: false,height: 174,width: 380,title: "<fmt:message key='credithc.sys.menuCatalog.add' bundle='${systemBundle}'></fmt:message>",modal: true });
+		}else{
+			$.messager.alert('<fmt:message key="credithc.sys.menuCatalog.add" bundle="${systemBundle}"></fmt:message>','<fmt:message key="credithc.sys.menuCatalog.select.onlyOne" bundle="${systemBundle}"></fmt:message>');
+		}
+	});
+//修改
+    $("#editBtn,[name='editLink']").live("click",function () {
+    	if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证单行
+			var key = getSelected({nameGroup:'menuCatalogId',currentObj:$(this)});
+			var url='${ctx}/security/menucatalog/' + key + '/edit';
+			top.openDialog({href:url, hrefMode:"iframe", resizable: false,height: 174, width: 380,title: "<fmt:message key='credithc.sys.menuCatalog.edit' bundle='${systemBundle}'></fmt:message>",modal: true });
+		}
+    });
+//查看
+    $("#showBtn,[name='showLink']").live("click",function (event,data) {
+     	if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证单行
+			var key = getSelected({nameGroup:'menuCatalogId',currentObj:$(this)});
+			var url='${ctx}/security/menucatalog/' + key;
+			top.openDialog({href:url,hrefMode:"iframe",resizable: false,height: 258, width: 380,title: "<fmt:message key='credithc.sys.menuCatalog.view' bundle='${systemBundle}'></fmt:message>",modal: true});
+		}
+     });
+//删除
+	$("#delBtn,[name='delLink']").live("click",function (event,data) {
+	    	var keys=getSelected({nameGroup:'menuCatalogId',currentObj:$(this)});
+	    	if (isSelected({isMultiSelect:true,currentObj:$(this)})) { 
+		    var delurl = "${ctx}/security/menucatalog/"+keys+"/"+"validatedelete";
+		    $.getJSON(delurl, function (data) {
+		    	 if (data.message != null) {//返回异常信息
+		             $.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>', data.message, '<fmt:message key="credithc.sys.prompt.info" bundle="${systemBundle}"></fmt:message>');
+		         }else{
+		        	 $.messager.confirm('<fmt:message key="credithc.sys.delete.prompt" bundle="${systemBundle}"></fmt:message>', '<fmt:message key="credithc.sys.delete.prompt.info" bundle="${systemBundle}"></fmt:message>', function (r) {
+		        	        if (r) {
+		        	            var url = "${ctx}/security/menucatalog/" + keys + "?_method=DELETE";
+		        			    /*$.getJSON(url, function (data) {
+		        			        $.messager.show({title: '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:', msg : data.message, timeout: 2000, showType: 'slide'});
+		        			        $("#flexTable").flexReload();
+		        		            initTree();
+		        			    });*/
+		        			    $.ajax({
+		    						type:'post',
+		    						url:url,
+		    						data:{id:keys},  
+		    						dataType:'json',
+		    						success:function(data){
+		    							$.messager.show({title: '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:', msg : data.message, timeout: 2000, showType: 'slide'});
+			        			        $("#flexTable").flexReload();
+			        		            initTree();
+		    						}
+		    					});
+		        	        }
+		        	 });
+		         }
+		    });
+		}
+     });
+// 刷新flexgird 数据
+	function refresh() {
+	    $("#flexTable").flexReload();
+	}
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

@@ -1,0 +1,5 @@
+validationQuery=SELECT 1
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/gack-sso
+jdbc.username=root
+jdbc.password=root

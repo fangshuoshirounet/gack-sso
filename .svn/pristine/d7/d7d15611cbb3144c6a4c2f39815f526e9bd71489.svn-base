@@ -1,0 +1,231 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="shiro" uri="http://shiro.apache.org/tags" %>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<fmt:setLocale value="${LANGUAGE}"/>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="theme" value="${sessionScope.theme}"/>
+<c:set var="loginFailedElement" value="${requestScope['SECURITY.LOGIN.FAILED.ELEMENT']}"/>
+<c:set var="loginFailedMessage" value="${requestScope['SECURITY.LOGIN.FAILED.MESSAGE']}"/>
+<c:set var="placeholderUsername" value="${placeholderUsername}"/>
+<c:set var="placeholderPassword" value="${placeholderPassword}"/>
+<c:set var="placeholderCaptcha" value="${placeholderCaptcha}"/>
+<c:if test="${loginFailedElement == 'username'}">
+    <c:set var="placeholderUsername" value="${loginFailedMessage}"/>
+</c:if>
+<c:if test="${loginFailedElement == 'password'}">
+    <c:set var="placeholderPassword" value="${loginFailedMessage}"/>
+</c:if>
+<c:if test="${loginFailedElement == 'captcha'}">
+    <c:set var="placeholderCaptcha" value="${loginFailedMessage}"/>
+</c:if>
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<title>催收系统</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Cache-Control" content="no-store"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Expires" content="0"/>
+	
+    <link type="image/x-icon" href="${ctx}/resources/themes/${THEME}/images/favicon.ico" rel="shortcut icon" />
+    <link rel="stylesheet" href="${ctx}/resources/themes/${THEME}/css/login_${LANGUAGE}.css" />
+
+    <script src="${ctx}/resources/jquery/1.8.3/jquery.min.js"></script>
+    <script src="${ctx}/resources/jquery-cookie/1.3.1/jquery.cookie.js"></script>
+    <script src="${ctx}/resources/themes/${THEME}/js/func.md5.js"></script>
+</head>
+<body id="body_background">
+<div id="login_win">
+    <form action="${ctx}/doLogin" id="loginForm" method="post">
+    	<c:if test="${LANGUAGE_DISPLAY}">
+    		<select id="language" value="${LANGUAGE}" style="float:right;margin-right:10px;margin-top:36px;">
+    			<c:forEach var="language" items="${LANGUAGE_OPTIONS}">
+    				<option value="${language}"><fmt:message key="${language}" bundle="${systemBundle}"></fmt:message></option>
+    			</c:forEach>
+    		</select>
+    	</c:if>
+        <label for="username" class="login_input hint"></label>
+		<input type="text" name="username" id="username" class="login_input" placeholder="${placeholderUsername}">
+        <label for="password" class="login_input hint"></label>
+		<input type="password" name="password" id="password" class="login_input" placeholder="${placeholderPassword}">
+		<input type="hidden" id="passwordChanged" value="N">
+        <label for="captcha" class="login_input hint"></label>
+		<input type="text" name="captcha" id="captcha" class="login_input" maxlength="4" placeholder="${placeholderCaptcha}">
+        <img alt="看不清，换张图片" style="cursor: hand" id="verifycode" src="${ctx}/verifycode" draggable="false">
+        <img id="change_captcha" src="${ctx}/resources/themes/${THEME}/images/login_change_captcha_${LANGUAGE}.png" draggable="false"> 
+        <img id="login_button" src="${ctx}/resources/themes/${THEME}/images/login_submit_${LANGUAGE}.png" draggable="false" onkeydown="LoginSubmit()" >
+        <input type="checkbox" name="remember" id="remember">
+		<label for="remember" id="remember_label"><fmt:message key="credithc.sys.remember.password" bundle="${systemBundle}"></fmt:message></label>
+    </form>
+</div>
+<div id="application_title"></div>
+<div id="company_title"></div>
+<div id="login_win_shadow"></div>
+<div id="body_background_tree"></div>
+<script type="text/javascript">
+//<![CDATA[
+    
+    var min_width = 940;
+    var min_height = 588;
+    $(function () {
+        doResize();
+        if($.cookie("platform.login.remember")) {
+            $("#remember").attr("checked", "true");
+            if($.cookie("credithc.login.username") && $("#username").attr("placeholder").substr(0, 1) != "!") {
+                $("#username").val($.cookie("credithc.login.username"));
+            }
+            if($.cookie("credithc.login.password") && $("#password").attr("placeholder").substr(0, 1) != "!") {
+                $("#password").val($.cookie("credithc.login.password"));
+            }
+        }
+        placeholder();
+        $(window).resize(function () {
+            doResize();
+        });
+        $("#username").bind('keydown', function (event) {
+            if(event.keyCode == 13) {
+                $("#password").focus();
+            }
+        });
+        $("#password").bind('keydown', function (event) {
+            if(event.keyCode == 13) {
+                $("#captcha").focus();
+            }
+        }).bind('change', function() {
+                    $('#passwordChanged').val("Y");
+                });
+        $("#captcha").bind('keydown', function (event) {
+            if(event.keyCode == 13) {
+                $('#login_button').click(
+	
+                );
+            }
+        });
+        $('#change_captcha').click(function () {
+            $('#verifycode').attr('src', '${ctx}/verifycode?' + Math.random());
+        });
+		 $('#verifycode').click(function () {
+            $('#verifycode').attr('src', '${ctx}/verifycode?' + Math.random());
+        });
+        $('#login_button').mouseover(function () {
+            this.src = '${ctx}/resources/themes/${THEME}/images/login_submit_over_${LANGUAGE}.png';
+        }).mouseout(function () {this.src = '${ctx}/resources/themes/${THEME}/images/login_submit_${LANGUAGE}.png';}).click(function () {
+			if($("#username").val() == "") {
+				alert("<fmt:message key='credithc.sys.login.username.required' bundle='${systemBundle}'></fmt:message>");
+				return false;
+			}
+			if($("#password").val() == "") {
+				alert("<fmt:message key='credithc.sys.login.password.required' bundle='${systemBundle}'></fmt:message>");
+				return false;
+			}
+		 	if($("#captcha").val() == "") {
+				alert("<fmt:message key='credithc.sys.login.authcode.required' bundle='${systemBundle}'></fmt:message>");
+				return false;
+			} 
+
+			if($("#passwordChanged").val() == 'Y') {
+				$("#password").val(new $.Md5().hex_md5($("#password").val()));
+			}
+			if($("#remember").attr("checked")) {
+				$.cookie("platform.login.remember", $("#remember").val(), {expires: 7});
+				$.cookie("credithc.login.username", $("#username").val(), {expires: 7});
+				$.cookie("credithc.login.password", $("#password").val(), {expires: 7});
+			}
+			else {
+				$.cookie("platform.login.remember", null);
+				$.cookie("credithc.login.username", null);
+				$.cookie("credithc.login.password", null);
+			}
+			$("#loginForm")[0].submit();
+		});
+    });
+
+    var doResize = function () {
+        var _width = $(window).width();
+        var _height = $(window).height();
+        if (_width < min_width) {
+            _width = min_width;
+        }
+        if (_height < min_height) {
+            _height = min_height;
+        }
+        $(document.body).width(_width);
+        $(document.body).height(_height);
+
+        var login_win = $('#login_win');
+        login_win.css("left", _width / 2);
+        login_win.css("top", _height / 2);
+
+        var application_title = $('#application_title');
+        application_title.css("left", _width / 2);
+        application_title.css("top", _height / 2);
+
+        var company_title = $('#company_title');
+        company_title.css("left", _width / 2);
+        company_title.css("top", _height);
+
+        var login_win_shadow = $('#login_win_shadow');
+        login_win_shadow.css("left", _width / 2);
+        login_win_shadow.css("top", _height / 2);
+
+        var body_background_tree = $('#body_background_tree');
+        body_background_tree.css("left", _width);
+        body_background_tree.css("top", _height);
+    };
+
+    var placeholder = function () {
+        $(".hint").each(function (index) {
+            var element = $('#' + $(this).attr("for"));
+            if (element.attr("placeholder") && element.attr("placeholder") != "") {
+                var hint = element.attr("placeholder");
+                $(this).css("font-size", element.css("font-size"));
+                $(this).css("margin-left", element.css("margin-left"));
+                $(this).css("margin-top", element.css("margin-top"));
+                $(this).css("width", element.css("width"));
+                $(this).css("height", element.css("height"));
+                $(this).css("line-height", element.css("line-height"));
+                $(this).css("text-align", element.css("text-align"));
+                if (hint.substr(0, 1) == "!") {
+                    hint = hint.substr(1);
+                    $(this).css("color", "#FF0000");
+                }
+                $(this).html(hint);
+                element.bind('focus', function () {
+                    $("label.hint[for='" + this.id + "']").css("display", "none");
+                });
+                element.bind('blur', function () {
+                    if ($(this).val() == "") {
+                        $("label.hint[for='" + this.id + "']").css("display", "block");
+                    }
+                });
+                if (element.val() == "") {
+                    $(this).css("display", "block");
+                }
+            }
+        });
+    };
+    
+    //选择语言
+    $('#language').val('${LANGUAGE}');
+    $('#language').change(function(){
+        var language = $(this).val();
+        window.location.href="${ctx}/login?language="+language;
+    });
+    
+    function LoginSubmit()
+    { 
+              if (event.keyCode == 13) 
+              { 
+            	alert("1111111");
+              } 
+       } 
+ 
+    
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp" %>

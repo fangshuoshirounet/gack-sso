@@ -1,0 +1,227 @@
+package citic.gack.sso.admin.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import citic.gack.sso.admin.security.SecurityManager;
+import citic.gack.sso.admin.service.SysUserRoleService;
+import citic.gack.sso.base.BaseController;
+import citic.gack.sso.base.PageInfo;
+import citic.gack.sso.base.exception.SysException;
+import citic.gack.sso.entity.SysUser;
+import citic.gack.sso.entity.SysUserRole;
+
+@Controller
+@RequestMapping("/public/sysuserrole")
+public class SysUserRoleController extends BaseController<SysUserRole> {
+	private static final String BUSINESS_PATH = "/public/sysuserrole";
+
+	@Autowired
+	private SysUserRoleService sysUserRoleService;
+
+	/**
+	 * 返回首页
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.GET)
+	public ModelAndView index(HttpServletRequest request) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName(getMappingUrl("/public/sysuserrole", PAGE_INDEX));
+		return mv;
+	}
+
+	/**
+	 * 分页查询返回pageInfo对象 model如果属性很多都从request中获取很麻烦，不如自己驱动模型
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.POST, params = "search=true")
+	public @ResponseBody
+	PageInfo search(HttpServletRequest request, SysUserRole model) throws SysException {
+		PageInfo pageInfo = getPageInfo(request);
+		try {
+			pageInfo = sysUserRoleService.queryListByPage(model, pageInfo);
+		} catch (SysException e) {
+		}
+
+		return pageInfo;
+	}
+
+	/**
+	 * 返回JSON信息 如果增加成功返回{message:MESSAGE_CREATE} 失败{message:异常信息}
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> createNew(HttpServletRequest request, SysUserRole model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			SysUser sysUser = SecurityManager.getSessionUser();
+			String userId = sysUser.getSysUserId();
+			String userName = sysUser.getName();
+			model.setCreator(userName);
+			model.setCreatorId(userId);
+			sysUserRoleService.insert(model);
+			appInfo.put("message", MESSAGE_CREATE);
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_CREATE_FAIL);
+		}
+
+		return appInfo;
+	}
+
+	/**
+	 * 确定修改操作 如果修改成功返回{message:MESSAGE_UPDATE} 失败{message:异常信息}
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	public @ResponseBody
+	Map<String, Object> update(HttpServletRequest request, SysUserRole model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			SysUser sysUser = SecurityManager.getSessionUser();
+			String userId = sysUser.getSysUserId();
+			String userName = sysUser.getName();
+			model.setOperatorId(userId);
+			model.setOperator(userName);
+			int flag = sysUserRoleService.update(model);
+			if (flag > 0) {
+				appInfo.put("message", MESSAGE_UPDATE);
+			} else {
+				appInfo.put("message", MESSAGE_UPDATE_FAIL);
+			}
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_UPDATE_FAIL);
+		}
+
+		return appInfo;
+	}
+
+	/**
+	 * 确定删除操作 如果删除成功返回{message:MESSAGE_DESTROY} 失败{message:异常信息}
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	Map<String, Object> destroy(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		List<SysUserRole> delList = new ArrayList<SysUserRole>();
+		SysUser sysUser = SecurityManager.getSessionUser();
+		String userId = sysUser.getSysUserId();
+		String userName = sysUser.getName();
+		if (StringUtils.isNotBlank(id)) {
+			String[] uniKey = id.split("-");
+			if (uniKey != null && uniKey.length > 0) {
+				for (String string : uniKey) {
+					SysUserRole sysUserRole = new SysUserRole();
+					sysUserRole.setSysUserRoleId(string);
+					sysUserRole.setOperatorId(userId);
+					sysUserRole.setOperator(userName);
+					delList.add(sysUserRole);
+				}
+				try {
+					sysUserRoleService.deleteBatch(delList);
+					appInfo.put("message", MESSAGE_DESTROY);
+				} catch (SysException e) {
+					appInfo.put("message", MESSAGE_DESTROY_FAIL);
+				}
+			}
+		}
+		return appInfo;
+	}
+
+	/**
+	 * 查看 GET: /{model}/{id}
+	 */
+
+	public ModelAndView show(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		if (StringUtils.isNotBlank(id)) {
+			SysUserRole sysUserRole = new SysUserRole();
+			sysUserRole.setSysUserRoleId(id);
+			try {
+				sysUserRole = sysUserRoleService.queryBean(sysUserRole);
+				mv.addObject("model", sysUserRole);
+				mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_EDIT));
+			} catch (SysException e) {
+			}
+		}
+		return mv;
+	}
+
+	/**
+	 * 实时查询的角色信息 分页查询返回pageInfo对象 model如果属性很多都从request中获取很麻烦，不如自己驱动模型
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping("/sysUserRole")
+	public @ResponseBody
+	PageInfo sysUserRole(HttpServletRequest request, SysUserRole model) throws SysException {
+		PageInfo pageInfo = new PageInfo();
+		pageInfo.setRowLimit(500);
+		pageInfo = sysUserRoleService.querySysUserRole(model, pageInfo);
+		return pageInfo;
+	}
+
+	/**
+	 * 去编辑界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}/edit", method = RequestMethod.GET)
+	public ModelAndView edit(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		if (StringUtils.isNotBlank(id)) {
+			SysUserRole sysUserRole = new SysUserRole();
+			sysUserRole.setSysUserRoleId(id);
+			try {
+				sysUserRole = sysUserRoleService.queryBean(sysUserRole);
+				mv.addObject("model", sysUserRole);
+				mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_EDIT));
+			} catch (SysException e) {
+			}
+		}
+		return mv;
+	}
+
+	/**
+	 * 去新增界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/new", method = RequestMethod.GET)
+	public String editNew(HttpServletRequest request) throws SysException {
+		return getMappingUrl(BUSINESS_PATH, PAGE_EDITNEW);
+	}
+
+}

@@ -1,0 +1,116 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+		 <div class="info-form" data-options="region:'center'">
+		 	 <fieldset>
+                <legend><fmt:message key="credithc.sys.staff.info" bundle="${systemBundle}"></fmt:message></legend>
+                <table class="table-info">
+                    <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.employeename" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.name}
+                    </td><th>
+                        <label><fmt:message key="credithc.sys.staff.sex" bundle="${systemBundle}"></fmt:message></label></th><td>
+					    <tags:showlabel-status columnName="SEX" tableName="STAFF" value="${model.sex}"></tags:showlabel-status>&nbsp;
+
+                    </td></tr>
+                     <tr>
+						<th><label class="required">员工编号</label></th>
+						<td>${model.employeeNo}</td>
+						<th><label>员工次序</label></th>
+						<td>${model.positionNo}</td>
+					</tr>
+					<tr>
+						<th><label>家庭电话</label></th>
+						<td>${model.homePhone}</td>
+						<th><label>手机</label></th>
+						<td>${model.mobile}</td>
+					</tr>
+                    
+                    
+                    <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.birth.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.birthday}
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.acronym" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.acronym}
+                    </td></tr>
+                    <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.political.landscape" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.politicalStatus}
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.ethnic" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.nation}
+                    </td></tr>
+                    <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.graduated" bundle="${systemBundle}"></fmt:message></label></th><td>
+                       ${model.college}
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.profession" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.major}
+                    </td></tr>
+                    <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.hometown" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.nativePlace}
+                    </td><th>
+                        <label><fmt:message key="credithc.sys.staff.addre" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.address}
+                    </td></tr>
+                </table>
+            </fieldset>
+            <fieldset>
+                <legend><fmt:message key="credithc.sys.staff.company.Info" bundle="${systemBundle}"></fmt:message></legend>
+               <table class="table-info">
+                   <tr><th>
+                        <label><fmt:message key="credithc.sys.org" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.orgName}
+                    </td><th>
+                        <label><fmt:message key="credithc.sys.staff.post" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.jobTitle}
+                    </td></tr>
+                   <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.contact" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.telNbr}
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.contract" bundle="${systemBundle}"></fmt:message></label></th><td>
+					    <tags:showlabel-status columnName="CONTRACT_TYPE" tableName="STAFF" value="${model.contractType}"></tags:showlabel-status>&nbsp;
+                    </td></tr>
+                    <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.company.mail" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.mailbox}
+                    </td><th>
+                        <label><fmt:message key="credithc.sys.staff.entry.time" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        ${model.workDate}
+                    </td></tr>
+                   	<tr><th>
+						<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<tags:showlabel-status columnName="STS" tableName="STAFF" value="${model.sts}"></tags:showlabel-status>&nbsp;
+					</td><th>
+						<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.operateDate}
+					</td> </tr>
+					<tr class="row2">
+					<th>
+                        <label><fmt:message key="credithc.sys.remarks" bundle="${systemBundle}"></fmt:message></label></th><td colspan="3">
+                        <textarea name="remarks" readOnly="readOnly"  style="width:530px">${model.remarks}</textarea>
+                    </td> 
+					 </tr>
+                </table>
+            </fieldset>
+		 </div>
+		 <div class="buttons" data-options="region:'south'">
+		 	<input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+         </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA
+	$(function() {
+		$("#closeSubmitBtn").click(function() {
+			 top.closeDialog();
+		});	 
+	});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

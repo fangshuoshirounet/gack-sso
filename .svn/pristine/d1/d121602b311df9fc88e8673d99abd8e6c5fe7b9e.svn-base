@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.OperatePermissionMapper">
+
+	<insert id="save" parameterType="citic.gack.sso.entity.SysOperatePermission">
+
+		insert into
+		OPERATE_PERMISSION
+		(OPERATE_PERMISSION_ID,operator_id,creator_id,ROLE_ID,PERMISSION_ID,MENU_OPERATION_ID,CATALOG_OPERATE_TYPE,STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR)
+		values
+		(#{operatePermissionId},#{creatorId},#{creatorId},#{roleId},#{permissionId},#{menuOperationId
+		,jdbcType=VARCHAR},#{catalogOperateType,jdbcType=VARCHAR},#{sts},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator})
+
+	</insert>
+
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysOperatePermission">
+		update OPERATE_PERMISSION
+		set
+		ROLE_ID=#{roleId},operator_id=#{operatorId},PERMISSION_ID=#{permissionId},MENU_OPERATION_ID=#{menuOperationId,jdbcType=VARCHAR},CATALOG_OPERATE_TYPE=#{catalogOperateType,jdbcType=VARCHAR},STS=#{sts},OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1 where OPERATE_PERMISSION_ID=#{operatePermissionId}  and  VERSION=#{version}
+
+	</update>
+
+	<delete id="deleteById" parameterType="citic.gack.sso.entity.SysOperatePermission">
+
+		update OPERATE_PERMISSION
+		set
+		STS=#{sts},  OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where
+		OPERATE_PERMISSION_ID=#{operatePermissionId}
+
+	</delete>
+	<delete id="deleteByRoleId" parameterType="java.lang.String">
+
+		update OPERATE_PERMISSION
+		set
+		STS=#{sts},  OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where
+		role_id=#{roleId}
+
+	</delete>
+	<select id="queryList" resultType="citic.gack.sso.entity.SysOperatePermission"
+		parameterType="citic.gack.sso.entity.SysOperatePermission">
+		select S.OPERATE_PERMISSION_ID, S.ROLE_ID, S.PERMISSION_ID,s.operator_id,s.creator_id,
+		S.MENU_OPERATION_ID,S.CATALOG_OPERATE_TYPE,S.STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from OPERATE_PERMISSION S
+		where 1=1 AND S.STS='A'
+
+		<if test="roleId !=null and roleId !=''">
+			and S.ROLE_ID =#{roleId}
+		</if>
+
+	</select>
+
+
+	<select id="queryById" resultType="citic.gack.sso.entity.SysOperatePermission"
+		parameterType="citic.gack.sso.entity.SysOperatePermission">
+		select
+		OPERATE_PERMISSION_ID,operator_id,creator_id,VERSION,ROLE_ID,PERMISSION_ID,MENU_OPERATION_ID,CATALOG_OPERATE_TYPE,STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from ROLE where
+		OPERATE_PERMISSION_ID=#{operatePermissionId}
+	</select>
+
+
+	<select id="queryListByPage" resultType="citic.gack.sso.entity.SysOperatePermission"
+		parameterType="citic.gack.sso.entity.SysOperatePermission">
+		select S.OperatePermission_ID, S.NAME, S.REMARKS, S.STS,s.operator_id,s.creator_id,
+		date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from
+		OperatePermission S where 1=1 AND
+		S.STS='A'
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if>
+	</select>
+
+
+	<select id="queryRoleMenuPermission" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		select a.menu_id, d.menu_name, d.menu_code, d.menu_url,a.operator_id,a.creator_id,
+		d.menu_catalog_id,
+		c.operation_id, e.operation_code,e.operation_name
+		from permission a, operate_permission b, menu_operation c, menu d,
+		operation e
+		where a.permission_id = b.permission_id and
+		b.menu_operation_id =c.menu_operation_id
+		and c.menu_id = d.menu_id and
+		c.operation_id = e.operation_id
+		and a.sts = 'A' and b.sts = 'A' and
+		c.sts = 'A' and d.sts = 'A' and e.sts= 'A'
+		and a.role_id = #{roleId}
+		order by d.order_no
+	</select>
+
+	<select id="queryRoleMenuCatalogPermission" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.util.Map">
+
+		select
+		a.MENU_ID,a.MENU_NAME,a.MENU_CODE,a.MENU_URL,a.MENU_CATALOG_ID,c.CATALOG_OPERATE_TYPE,a.operator_id,a.creator_id,
+		case when c.CATALOG_OPERATE_TYPE='A' then 0 else 1 end as
+		OPERATION_ID,
+		case when c.CATALOG_OPERATE_TYPE='A' then '*' else
+		'access' end as
+		OPERATION_CODE
+		from MENU a,(
+		<choose>
+			<when test="list!=null and list.size()>0">
+				<foreach collection="list" item="item" index="index"
+					separator="union">
+					select
+					d.MENU_CATALOG_ID,#{item.menuCatalogId,jdbcType=VARCHAR} as rootid
+					from MENU_CATALOG d where FIND_IN_SET(d.MENU_CATALOG_ID,
+					getMenuCatalogChildLst(#{item.menuCatalogId,jdbcType=VARCHAR}))>0
+					and d.sts='A'
+				</foreach>
+			</when>
+			<otherwise>
+				select d.MENU_CATALOG_ID, null as rootid from MENU_CATALOG
+				d where 1=2
+			</otherwise>
+		</choose>
+		) b ,OPERATE_PERMISSION c,PERMISSION g where a.MENU_CATALOG_ID =
+		b.MENU_CATALOG_ID and b.ROOTID = g.MENU_CATALOG_ID
+
+		and c.PERMISSION_ID
+		= g.PERMISSION_ID and a.STS = 'A' and c.STS = 'A' and
+		g.STS = 'A'
+		and
+		g.ROLE_ID =#{roleId}
+	</select>
+	<select id="queryRoleMenuCatalogPermissionDG" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		select f.MENU_CATALOG_ID from OPERATE_PERMISSION e,
+		PERMISSION f
+		where e.PERMISSION_ID = f.PERMISSION_ID and e.STS = 'A'
+		and f.STS = 'A' and
+		f.MENU_CATALOG_ID is not null
+		and f.ROLE_ID =
+		#{roleId} 
+	</select>
+
+
+
+	<select id="querySysUserMenuPermission" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		select c.MENU_ID, c.MENU_NAME, c.MENU_CODE, c.MENU_URL,
+		c.MENU_CATALOG_ID, e.OPERATION_ID, e.OPERATION_CODE,e.operation_name
+		from SYS_USER_PRIVILEGE a, SYS_USER_OPER_PRIVILEGE b, MENU c,
+		MENU_OPERATION d, OPERATION e
+		where a.PRIVILEGE_ID = b.PRIVILEGE_ID and
+		a.MENU_ID = c.MENU_ID and b.MENU_OPERATION_ID = d.MENU_OPERATION_ID
+		and
+		d.OPERATION_ID = e.OPERATION_ID and a.STS = 'A' and b.STS = 'A' and
+		c.STS = 'A' and d.STS = 'A' and e.STS = 'A'
+		and a.SYS_USER_ID =
+		#{sysUserId}
+
+	</select>
+
+	<select id="querySysUserMenuCatalogPermission" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		select
+		a.MENU_ID,a.MENU_NAME,a.MENU_CODE,a.MENU_URL,a.MENU_CATALOG_ID,c.CATALOG_OPERATE_TYPE,a.operator_id,a.creator_id,
+		case when c.CATALOG_OPERATE_TYPE='A' then 0 else 1 end as
+		OPERATION_ID,case when c.CATALOG_OPERATE_TYPE='A' then '*' else
+		'access' end as OPERATION_CODE
+		from MENU a,(
+
+		<choose>
+			<when test="list!=null and list.size()>0">
+				<foreach collection="list" item="item" index="index"
+					separator="union">
+					select
+					d.MENU_CATALOG_ID,#{item.menuCatalogId,jdbcType=VARCHAR} as rootid
+					from MENU_CATALOG
+					d where FIND_IN_SET(d.MENU_CATALOG_ID,
+					getMenuCatalogChildLst(#{item.menuCatalogId,jdbcType=VARCHAR})) and
+					d.sts='A'
+				</foreach>
+			</when>
+			<otherwise>
+				select d.MENU_CATALOG_ID, null as rootid from MENU_CATALOG
+				d where 1=2
+			</otherwise>
+		</choose>
+
+		) b, SYS_USER_OPER_PRIVILEGE c,SYS_USER_PRIVILEGE g
+		where
+		a.MENU_CATALOG_ID = b.MENU_CATALOG_ID and b.ROOTID =
+		g.MENU_CATALOG_ID
+		and c.PRIVILEGE_ID = g.PRIVILEGE_ID
+		and a.STS = 'A' and c.STS = 'A' and
+		g.STS = 'A'
+		and g.SYS_USER_ID =
+		#{sysUserId}
+
+	</select>
+	<select id="querySysUserMenuCatalogPermissionDG" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		select f.MENU_CATALOG_ID from SYS_USER_OPER_PRIVILEGE e,
+		SYS_USER_PRIVILEGE f
+		where e.PRIVILEGE_ID = f.PRIVILEGE_ID and e.STS =
+		'A' and f.STS = 'A' and
+		f.SYS_USER_ID = #{sysUserId}
+		and
+		f.MENU_CATALOG_ID is not null
+	</select>
+	<select id="querySysUserMenuConstraint" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		select c.MENU_ID, c.MENU_NAME, c.MENU_CODE, c.MENU_URL,
+		c.MENU_CATALOG_ID, e.OPERATION_ID, e.OPERATION_CODE,e.OPERATION_NAME
+		from SYS_USER_CONSTRAINT a, SYS_USER_OPER_CONSTRAINT b, MENU c,
+		MENU_OPERATION d, OPERATION e
+		where a.CONSTRAINT_ID = b.CONSTRAINT_ID
+		and a.MENU_ID = c.MENU_ID and
+		b.MENU_OPERATION_ID = d.MENU_OPERATION_ID
+		and d.OPERATION_ID = e.OPERATION_ID
+		and a.STS = 'A' and b.STS = 'A' and
+		c.STS = 'A' and d.STS = 'A' and e.STS = 'A'
+		and a.SYS_USER_ID =
+		#{sysUserId}
+	</select>
+	<select id="querySysUserMenuCatalogConstraint" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		select
+		a.MENU_ID,a.MENU_NAME,a.MENU_CODE,a.MENU_URL,a.MENU_CATALOG_ID,c.CATALOG_OPERATE_TYPE,
+		case when c.CATALOG_OPERATE_TYPE='A' then 0 else 1 end as
+		OPERATION_ID,case when c.CATALOG_OPERATE_TYPE='A' then '*' else
+		'access' end as OPERATION_CODE
+		from MENU a,(
+
+		<choose>
+			<when test="list!=null and list.size()>0">
+				<foreach collection="list" item="item" index="index"
+					separator="union">
+					select
+					d.MENU_CATALOG_ID,#{item.menuCatalogId,jdbcType=VARCHAR} as rootid
+					from MENU_CATALOG
+					d where FIND_IN_SET(d.MENU_CATALOG_ID,
+					getMenuCatalogChildLst(#{item.menuCatalogId,jdbcType=VARCHAR})) and
+					d.sts='A'
+				</foreach>
+			</when>
+			<otherwise>
+				select d.MENU_CATALOG_ID, null as rootid from MENU_CATALOG
+				d where 1=2
+			</otherwise>
+		</choose>
+		) b,
+		SYS_USER_OPER_CONSTRAINT c,SYS_USER_CONSTRAINT g
+		where a.MENU_CATALOG_ID = b.MENU_CATALOG_ID and b.ROOTID =
+		g.MENU_CATALOG_ID and c.CONSTRAINT_ID = g.CONSTRAINT_ID
+		and a.STS = 'A' and c.STS = 'A' and g.STS = 'A'
+		and g.SYS_USER_ID = #{sysUserId}
+	</select>
+	<select id="querySysUserMenuCatalogConstraintDG" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		select f.MENU_CATALOG_ID from SYS_USER_OPER_CONSTRAINT
+		e, SYS_USER_CONSTRAINT f
+		where e.CONSTRAINT_ID = f.CONSTRAINT_ID and e.STS = 'A' and f.STS = 'A' and
+		f.SYS_USER_ID = #{sysUserId}
+		and f.MENU_CATALOG_ID is not null
+	</select>
+
+	<select id="queryMenuOperatePermission" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="citic.gack.sso.admin.dto.OperatePermissionDTO">
+		select S.OPERATE_PERMISSION_ID, S.ROLE_ID,
+		S.PERMISSION_ID,
+		S.MENU_OPERATION_ID,S.CATALOG_OPERATE_TYPE,S.STS,S.OPERATE_DATE,S.CREATE_DATE
+		from OPERATE_PERMISSION S,PERMISSION P where
+		S.PERMISSION_ID=P.PERMISSION_ID
+		and S.STS='A' and P.ROLE_ID =#{roleId}
+		and S.ROLE_ID=#{roleId}
+		<if test="menuId!=null">
+			and P.MENU_ID=#{menuId}
+		</if>
+	</select>
+
+
+
+	<select id="queryMenuCatalogOperatePermission" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="citic.gack.sso.admin.dto.OperatePermissionDTO">
+		select S.OPERATE_PERMISSION_ID, S.ROLE_ID, S.PERMISSION_ID,
+		S.MENU_OPERATION_ID,S.CATALOG_OPERATE_TYPE,S.STS,S.OPERATE_DATE,S.CREATE_DATE
+		from OPERATE_PERMISSION S,PERMISSION P where
+		S.PERMISSION_ID=P.PERMISSION_ID
+		and S.STS='A' and P.ROLE_ID =#{roleId}
+		and S.ROLE_ID=#{roleId}
+		<if test="menuCatalogId!=null">
+			and P.MENU_CATALOG_ID=#{menuCatalogId}
+		</if>
+	</select>
+	<delete id="deleteMenuOperatePermission" parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+		update
+		OPERATE_PERMISSION set
+		STS='P',operator_id=#{operatorId},  OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator} where PERMISSION_ID =
+		#{permissionId}
+	</delete>
+
+</mapper>

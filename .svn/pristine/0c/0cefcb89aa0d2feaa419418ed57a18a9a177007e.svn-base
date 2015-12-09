@@ -1,0 +1,234 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<!-- 查询项 -->
+ <div id="p" class="easyui-panel" title="<fmt:message key="credithc.sys.user.setting.query" bundle="${systemBundle}"></fmt:message>" style="height:150px;">
+	<form id="frm">
+		<table class="queryTable-content">
+			<tr>
+				<th><fmt:message key="credithc.sys.user.setting.id" bundle="${systemBundle}"></fmt:message></th>
+				<td><input type="text" class="inputbox-text" name="sysUserSettingId"/></td>
+				
+		    	<th><fmt:message key="credithc.sys.user.id" bundle="${systemBundle}"></fmt:message></th>
+				<td><input type="text" class="inputbox-text" name="sysUserId"/></td>
+				
+		    	<th><fmt:message key="credithc.sys.user.setting.info" bundle="${systemBundle}"></fmt:message></th>
+				<td><input type="text" class="inputbox-text" name="setting"/></td>
+				
+		    	<th><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></th>
+				<td><input type="text" class="inputbox-text" name="sts"/></td>
+				
+		    	<th><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></th>
+				<td><input type="text" class="inputbox-text" name="operateDate"/></td>
+				
+		    	<th><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></th>
+				<td><input type="text" class="inputbox-text" name="createDate"/></td>
+				
+			</tr>
+		</table>
+	</form>
+	<!-- 查询按钮 -->
+	 <div class="queryDiv">  
+	 	<shiro:hasPermission name="public:sysusersetting:query">
+        <a id="qryBtn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'"><fmt:message key="credithc.sys.button.query" bundle="${systemBundle}"></fmt:message></a>  
+        <a id="resetBtn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-undo'"><fmt:message key="credithc.sys.button.remove" bundle="${systemBundle}"></fmt:message></a>  
+   		</shiro:hasPermission>
+    </div>  	
+</div>
+<!-- 显示列表-->
+<table id="flexTable"></table>
+<script>
+ $(function() {
+	$("#flexTable").flexigrid({
+			url:"${ctx}/public/sysusersetting.json?search=true",
+			colModel : [
+			
+				{
+					display : '<fmt:message key="credithc.sys.user.setting.id" bundle="${systemBundle}"></fmt:message>',
+					name : 'sysUserSettingId',
+					width : 300,
+					sortable : false,
+					align : 'center'
+				}, 
+				{
+					display : '<fmt:message key="credithc.sys.user.id" bundle="${systemBundle}"></fmt:message>',
+					name : 'sysUserId',
+					width : 300,
+					sortable : false,
+					align : 'center'
+				}, 
+				{
+					display : '<fmt:message key="credithc.sys.user.setting.info" bundle="${systemBundle}"></fmt:message>',
+					name : 'setting',
+					width : 300,
+					sortable : false,
+					align : 'center'
+				}, 
+				{
+					display : '<fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message>',
+					name : 'sts',
+					width : 300,
+					sortable : false,
+					align : 'center'
+				}, 
+				{
+					display : '<fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message>',
+					name : 'operateDate',
+					width : 300,
+					sortable : false,
+					align : 'center'
+				}, 
+				{
+					display : '<fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message>',
+					name : 'createDate',
+					width : 300,
+					sortable : false,
+					align : 'center'
+				} 
+				 ],
+			buttons : [ {
+				name : '<fmt:message key="credithc.sys.add" bundle="${systemBundle}"></fmt:message>',
+				bclass : 'add',
+				onpress : toolbarItem
+			}, {
+				separator : true
+			}, {
+				name : '<fmt:message key="credithc.sys.view" bundle="${systemBundle}"></fmt:message>',
+				bclass : 'view',
+				onpress : toolbarItem
+			}, {
+				separator : true
+			}, {
+				name : '<fmt:message key="credithc.sys.edit" bundle="${systemBundle}"></fmt:message>',
+				displayname : 'modify',
+				bclass : 'edit',
+				onpress : toolbarItem
+			}, {
+				separator : true
+			}, {
+				name : '<fmt:message key="credithc.sys.delete" bundle="${systemBundle}"></fmt:message>',
+				displayname : 'delete',
+				bclass : 'delete',
+				onpress : toolbarItem
+			} ]
+		});
+
+	    //查询
+		$("#qryBtn").click(function(){
+			$("#flexTable").flexRefresh();
+		});
+
+		//重置
+		$("#resetBtn").click(function() {
+			$("#frm")[0].reset();
+		});
+
+		function toolbarItem(com, grid) {
+			if (com == '<fmt:message key="credithc.sys.delete" bundle="${systemBundle}"></fmt:message>') {
+				deleteModel();
+			} else if (com == '<fmt:message key="credithc.sys.add" bundle="${systemBundle}"></fmt:message>') {
+				openDialogAdd();
+			} else if (com == '<fmt:message key="credithc.sys.edit" bundle="${systemBundle}"></fmt:message>') {
+				openDialogModify();
+			} else if (com == '<fmt:message key="credithc.sys.view" bundle="${systemBundle}"></fmt:message>') {
+				openDialogView();
+			}
+
+		}
+		//新增
+		function openDialogAdd() {
+			var url='${ctx}/public/sysusersetting/new';
+			top.openDialog({
+				 href:url,
+				 resizable: true,
+				 height: 300,
+				 width: 500,
+				 title: "<fmt:message key='credithc.sys.status.new.sts' bundle='${systemBundle}'></fmt:message>",
+				 modal: true
+	        })
+		}
+
+		//修改
+		function openDialogModify() {
+			var len = $('.trSelected').length;
+			if (len == 0) {
+				jQuery.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>:','<fmt:message key="credithc.sys.org.operation.info" bundle="${systemBundle}"></fmt:message>','info');
+				return;
+			}
+			if (len > 1) {
+				jQuery.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>:','<fmt:message key="credithc.sys.new.org.add.info" bundle="${systemBundle}"></fmt:message>','info');
+				return;
+			}
+			var key = $('.trSelected').find("td:first").eq(0).text();
+			var url='${ctx}/public/sysusersetting/' + key + '/edit';
+			top.openDialog({
+				 href:url,
+				 resizable: true,
+				 height: 300,
+				 width: 500,
+				 title: "<fmt:message key='credithc.sys.status.edit.sts' bundle='${systemBundle}'></fmt:message>",
+				 modal: true
+	        });
+		}
+
+		//查看
+		function openDialogView() {
+			var len = $('.trSelected').length;
+			if (len == 0) {
+				jQuery.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>:','<fmt:message key="credithc.sys.org.operation.info" bundle="${systemBundle}"></fmt:message>','info'); 
+				return;
+			}
+			if (len > 1) {
+				jQuery.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>:','<fmt:message key="credithc.sys.new.org.add.info" bundle="${systemBundle}"></fmt:message>','info'); 
+				return;
+			}
+			var key = $('.trSelected').find("td:first").eq(0).text();
+			var url='${ctx}/public/sysusersetting/' + key;
+			top.openDialog({
+				 href:url,
+				 resizable: true,
+				 height: 300,
+				 width: 500,
+				 title: "<fmt:message key='credithc.sys.status.view.sts' bundle='${systemBundle}'></fmt:message>",
+				 modal: true
+	        })
+		}
+
+		//删除
+		function deleteModel() {
+			var len = $('.trSelected').length;
+			if (len == 0) {
+				jQuery.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>:','<fmt:message key="credithc.sys.org.operation.info" bundle="${systemBundle}"></fmt:message>','info'); 
+				return;
+			}
+			$.messager.confirm('<fmt:message key="credithc.sys.delete.prompt" bundle="${systemBundle}"></fmt:message>', '<fmt:message key="credithc.sys.delete.prompt.info" bundle="${systemBundle}"></fmt:message>', function(r) {
+				if (r) {
+					var keys = "";
+					for ( var i = 0; i < len; i++) {
+						var selectRow = $('.trSelected').eq(i).find("td");
+						var temp = selectRow.eq(0).text() ;
+						keys = keys + temp + ",";
+					}
+					keys = keys.substr(0, keys.length - 1);
+					var url = "${ctx}/public/sysusersetting/" + keys
+							+ ".json?_method=DELETE";
+					$.getJSON(url, function(data) {
+						$.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 1000,showType : 'slide'});
+						$("#flexTable").flexReload();
+					});
+				}
+			});
+		}
+
+	});
+    //刷新flexgird 数据
+	function refresh() {
+		var opt = {
+			url : '${ctx}/public/sysusersetting!search'
+		};
+		$("#flexTable").flexOptions(opt);
+		$("#flexTable").flexReload();
+	}
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

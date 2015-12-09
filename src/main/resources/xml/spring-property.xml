@@ -19,10 +19,9 @@
 	<util:properties id="basemsgsendProperties" location="classpath:property/basemsgsend.properties"></util:properties>
 	 -->
 	<context:property-placeholder location="classpath:property/jdbc.properties" />
-	<context:property-placeholder location="classpath:property/redis.properties" />
 	
 	<!-- 配置应用系统的常量 -->
-	<bean name="constants" class="citic.gack.web.sso.utils.Constants">
+	<bean name="constants" class="citic.gack.sso.utils.Constants">
 		<constructor-arg value="property/basemsgsend.properties" />
 	</bean>
 </beans>

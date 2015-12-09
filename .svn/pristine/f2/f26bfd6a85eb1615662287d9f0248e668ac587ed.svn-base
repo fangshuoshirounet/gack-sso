@@ -1,0 +1,356 @@
+package citic.gack.sso.admin.controller;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import citic.gack.sso.admin.dto.OrgTypeDTO;
+import citic.gack.sso.admin.security.SecurityManager;
+import citic.gack.sso.admin.service.AreaService;
+import citic.gack.sso.admin.service.OrgTypeService;
+import citic.gack.sso.admin.service.OrganizationService;
+import citic.gack.sso.admin.service.SysUserService;
+import citic.gack.sso.base.BaseController;
+import citic.gack.sso.base.PageInfo;
+import citic.gack.sso.base.exception.SysException;
+import citic.gack.sso.entity.SysOrganization;
+import citic.gack.sso.entity.SysUser;
+
+@Controller
+@RequestMapping("/admin/organization/organization")
+public class OrganizationController extends BaseController<SysOrganization> {
+	private static final Logger logger = LoggerFactory.getLogger(OrganizationController.class);
+	private static final String BUSINESS_PATH = "/admin/organization/organization";
+
+	@Autowired
+	private OrganizationService organizationService;
+	@Autowired
+	private AreaService areaService;
+	@Autowired
+	private OrgTypeService orgTypeService;
+	@Autowired
+	private SysUserService sysUserService;
+
+	/**
+	 * 返回首页
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.GET)
+	public ModelAndView index(HttpServletRequest request) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		try {
+			initJspParams(request);
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+		mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_INDEX));
+		return mv;
+	}
+
+	/**
+	 * 一开始使用@PathVariable("id") String
+	 * id只注入id，但很多业务还需要获取更多参数，所以作为共用方法注入HttpServletRequest 去查看界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	public ModelAndView show(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		SysOrganization org = new SysOrganization();
+		org.setOrgId(id);
+		try {
+			org = organizationService.queryBean(org);
+			mv.addObject("model", org);
+			mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_SHOW));
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return mv;
+	}
+
+	/**
+	 * 去编辑界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}/edit", method = RequestMethod.GET)
+	public ModelAndView edit(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		SysOrganization org = new SysOrganization();
+		org.setOrgId(id);
+		try {
+			org = organizationService.queryBean(org);
+			mv.addObject("model", org);
+			mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_EDIT));
+			// 初始化页面需要参数
+			initJspParams(request);
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return mv;
+	}
+
+	/**
+	 * 去新增界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/new", method = RequestMethod.GET)
+	public String editNew(HttpServletRequest request) throws SysException {
+		try {
+			// 初始化页面需要参数
+			initJspParams(request);
+		} catch (SysException e) {
+		}
+
+		return getMappingUrl(BUSINESS_PATH, PAGE_EDITNEW);
+	}
+
+	/**
+	 * 确定删除操作 如果删除成功返回{message:MESSAGE_DESTROY} 失败{message:异常信息}
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	Map<String, Object> destroy(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		List<SysOrganization> delList = new ArrayList<SysOrganization>();
+		SysUser sysUser = SecurityManager.getSessionUser();
+		String userId = sysUser.getSysUserId();
+		String userName = sysUser.getName();
+		if (StringUtils.isNotBlank(id)) {
+			String[] uniKey = id.split("-");
+			if (uniKey != null && uniKey.length > 0) {
+				for (String string : uniKey) {
+					String[] ids = string.split(",");
+					SysOrganization org = new SysOrganization();
+					org.setOrgId(ids[0]);
+					org.setOperatorId(userId);
+					org.setOperator(userName);
+					delList.add(org);
+				}
+			}
+			try {
+				organizationService.deleteBatch(delList);
+				appInfo.put("message", MESSAGE_DESTROY);
+			} catch (SysException e) {
+				logger.error("", e);
+				appInfo.put("message", MESSAGE_DESTROY_FAIL);
+			}
+
+		}
+		return appInfo;
+	}
+
+	/**
+	 * 确定修改操作 如果修改成功返回{message:MESSAGE_UPDATE} 失败{message:异常信息}
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	public @ResponseBody
+	Map<String, Object> update(HttpServletRequest request, SysOrganization model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			SysUser sysUser = SecurityManager.getSessionUser();
+			String userId = sysUser.getSysUserId();
+			String userName = sysUser.getName();
+			model.setOperatorId(userId);
+			model.setOperator(userName);
+			int flag = organizationService.update(model);
+			if (flag > 0) {
+				appInfo.put("message", MESSAGE_UPDATE);
+			} else {
+				appInfo.put("message", MESSAGE_UPDATE_FAIL);
+			}
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_UPDATE_FAIL);
+			logger.error("", e);
+		}
+
+		return appInfo;
+	}
+
+	/**
+	 * 分页查询返回pageInfo对象 model如果属性很多都从request中获取很麻烦，不如自己驱动模型
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.POST, params = "search=true")
+	public @ResponseBody
+	PageInfo search(HttpServletRequest request, SysOrganization model) throws SysException {
+		PageInfo pageInfo = getPageInfo(request);
+		try {
+			pageInfo = organizationService.queryListByPage(model, pageInfo);
+		} catch (SysException e) {
+		}
+
+		return pageInfo;
+	}
+
+	/**
+	 * 删除之前验证是否存在子节点
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/{id}/validatedelete", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> validatedelete(String id) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			SysOrganization model = new SysOrganization();
+			if (StringUtils.isNotBlank(id)) {
+				String[] uniKey = id.split("-");
+				if (uniKey != null && uniKey.length > 0) {
+					List list = null;
+					String errorMsg = "";
+					for (String string : uniKey) {
+						String[] ids = string.split(",");
+						model.setOrgId(ids[0]);
+						list = organizationService.queryList(model);
+						if (list != null && list.size() > 0) {
+							model = organizationService.queryBean(model);
+							errorMsg = "您选择" + model.getName() + "选项是父节点，不能删除，请先删除该节点下的子节点！";
+							appInfo.put("message", errorMsg);
+							break;
+						}
+						list = sysUserService.sarchSysUserByOrgId(ids[0]);
+						if (list != null && list.size() > 0) {
+							model = organizationService.queryBean(model);
+							errorMsg = "您选择" + model.getName() + "选项是父节点，不能删除，请先删除该节点下的子节点！";
+							appInfo.put("message", errorMsg);
+							break;
+						}
+						// 员工岗位功能没有完成，暂时不做校验
+						// list =
+						// staffPositionDelegate.searchModelByOrgId(ids[0]);
+						// if (list != null && list.size() > 0) {
+						// model = organizationService.queryBean(model);
+						// errorMsg =
+						// String.format("您选择【%s】选项有员工岗位的关联数据，请先删除关联数据！",
+						// model.getName());
+						// appInfo.put("errorMsg", errorMsg);
+						// break;
+						// }
+					}
+				}
+			}
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return appInfo;
+	}
+
+	/**
+	 * 返回JSON信息 如果增加成功返回{message:MESSAGE_CREATE} 失败{message:异常信息}
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> createNew(HttpServletRequest request, SysOrganization model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			SysUser sysUser = SecurityManager.getSessionUser();
+			String userId = sysUser.getSysUserId();
+			String userName = sysUser.getName();
+			model.setCreator(userName);
+			model.setCreatorId(userId);
+			organizationService.insert(model);
+			appInfo.put("message", MESSAGE_CREATE);
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_CREATE_FAIL);
+			logger.error("", e);
+		}
+
+		return appInfo;
+	}
+
+	/**
+	 * 构建jsp页面初始需要的参数
+	 * 
+	 * @throws SysException
+	 * @throws SysException
+	 */
+	private void initJspParams(HttpServletRequest request) throws SysException, SysException {
+		// 初始化页面组织结构类型
+		List<OrgTypeDTO> orgTypeList = orgTypeService.queryList(null);
+		request.setAttribute("orgTypeList", orgTypeList);
+	}
+
+	/**
+	 * 构建系统组织机构tree
+	 * 
+	 */
+	@RequestMapping("/treejson")
+	public void treejson(HttpServletResponse response, HttpServletRequest request, boolean isChild) throws SysException {
+		response.setContentType("text/plain;charset=UTF-8");
+		String id = request.getParameter("id");
+		try {
+			String rs = organizationService.treejson(isChild, id);
+			PrintWriter writer = response.getWriter();
+			writer.write(rs);
+			writer.close();
+		} catch (SysException e) {
+			logger.error("", e);
+		} catch (IOException e) {
+			logger.error("", e);
+		}
+	}
+
+	/**
+	 * 构建系统区域tree
+	 * 
+	 */
+	@RequestMapping("/areatreejson")
+	public void areatreejson(HttpServletRequest request, HttpServletResponse response, boolean isChild) throws SysException {
+		response.setContentType("text/plain;charset=UTF-8");
+		String id = request.getParameter("id");
+		try {
+			String rs = areaService.treejson(isChild, id);
+			PrintWriter writer = response.getWriter();
+			writer.write(rs);
+			writer.close();
+		} catch (SysException e) {
+			logger.error("", e);
+		} catch (IOException e) {
+			logger.error("", e);
+		}
+	}
+
+}

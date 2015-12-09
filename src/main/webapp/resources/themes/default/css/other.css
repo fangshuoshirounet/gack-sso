@@ -1,0 +1,9 @@
+body,div,ul{ padding:0; margin:0;}
+
+.container{width:100%; margin:5px; }
+.tab{ padding:0; margin:0;  }
+.tab li{ list-style:none; float:left;padding:0; margin-right:10px; line-height:30px; height:30px; width:65px; text-align:center;}
+.content{ float:none; padding-top:30px; border:solid 1px black; clear:both; }
+.content div{ border-top:0px; height:60px;}
+.tab_selected{ border-left:solid 1px black; background-color:#ffffff; border-right:solid 1px black; border-top:solid 1px black; border-bottom:0px; bottom:-1px; position:relative; z-index:1}
+.tab_current{  text-decoration:underline;}

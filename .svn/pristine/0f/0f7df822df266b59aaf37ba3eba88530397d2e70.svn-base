@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="gbk"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+    <description>Security Configuration</description>
+
+    <!-- 定义Shiro使用的缓存管理对象 -->
+    <bean id="securityCacheManager" class="org.apache.shiro.cache.MemoryConstrainedCacheManager"/>
+
+    <!-- 自定义的Realm，可以设置是否启用验证码等。详见类注释。 -->
+    <bean id="securityRealm" class="citic.gack.sso.admin.security.SecurityRealm">
+        <property name="captchaEnable" value="true"/>
+        <property name="cacheManager" ref="securityCacheManager"/>
+    </bean>
+
+    <!-- 创建Shiro的securityManager，并设置了realm和cacheManager两个关键属性 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="securityRealm"/>
+    </bean>
+
+    <!-- 自定义filterChainDefinitions -->
+    <bean id="menuFilterChainDefinition" class="citic.gack.sso.admin.security.MenuFilterChainDefinition">
+        <property name="filterChainDefinitions">
+            <!-- 此部分的filterChain将加载在最前面 -->
+            <value>
+                /resources/** = anon
+                /themes/** = anon
+                /verifycode = anon 
+                /api/** = anon
+            </value>
+        </property>
+        
+        <property name="finalFilterChainDefinitions">
+            <!-- 此部分的filterChain将加载在最后面 -->
+            <value>
+                /admin/** = authc
+            </value>
+        </property>
+    </bean>
+
+    <!-- 自定义的认证Filter，属性securityManagerService为必须属性，其它的详见类注释 -->
+    <bean id="securityAuthcFilter" class="citic.gack.sso.admin.security.SecurityAuthcFilter">
+        <!--<property name="failureKeyAttribute" value=""/>-->
+    </bean>
+
+    <!-- 通过Spring创建Shiro的过滤器 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="/doLogin"/>
+        <property name="successUrl" value="/home"/>
+        <property name="unauthorizedUrl" value="/login"/>
+        <property name="filters">
+            <map>
+                <entry key="authc" value-ref="securityAuthcFilter"/>
+            </map>
+        </property>
+        <property name="filterChainDefinitionMap" ref="menuFilterChainDefinition"/>
+    </bean>
+</beans>

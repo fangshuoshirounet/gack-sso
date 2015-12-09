@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.AreaMapper">
+
+	<select id="queryListByPage" resultType="citic.gack.sso.admin.dto.AreaDTO"
+		parameterType="citic.gack.sso.entity.SysArea">
+		select A.AREA_ID,A.NAME,A.PARENT_ID,A.ABBR,A.CODE,A.SORT_POSITION,
+		A.STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s')
+		,date_format(A.CREATE_DATE,'%Y-%m-%d %H:%i:%s')
+		,operator,creator,operator_id,creator_id,VERSION,A.IS_CENTER from SYS_AREA A where A.STS='A'
+
+		<if test="condition.parentId !=null and condition.parentId !=''">
+			and A.AREA_ID in ( SELECT B.AREA_ID FROM SYS_AREA B
+			where FIND_IN_SET(B.AREA_ID, getAreaChildLst(#{condition.parentId})))
+		</if>
+
+
+		<if
+			test="condition.name !=null and condition.name !='' or condition.code !=null and condition.code !=''">
+			and A.AREA_ID in ( select C.AREA_ID from SYS_AREA C where 1=1
+			<choose>
+				<when test="condition.name !=null and condition.name !=''">
+					and C.NAME LIKE CONCAT('%',${condition.name},'%')
+				</when>
+				<when test="condition.code !=null and condition.code !=''">
+					and C.CODE LIKE CONCAT('%',${condition.code},'%')
+				</when>
+			</choose>
+			)
+		</if>
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if>
+	</select>
+
+	<select id="queryByOrgId" resultType="citic.gack.sso.entity.SysArea"
+		parameterType="citic.gack.sso.entity.SysArea">
+		select date_format(a.OPERATE_DATE,'%Y-%m-%d %H:%i:%s'),a.VERSION
+		OPERATE_DATE,date_format(a.CREATE_DATE,'%Y-%m-%d %H:%i:%s')
+		CREATE_DATE,a.operator,a.creator,a.AREA_ID, a.PARENT_ID, a.CODE,a.operator_id,a.creator_id,
+		a.NAME from SYS_AREA a,
+		SYS_ORGANIZATION b where a.area_id = b.area_id and
+		a.sts='A' and b.sts='A'
+		<if test="orgId !=null and orgId !=''">
+			and b.org_id = #{orgId}
+		</if>
+	</select>
+
+	<insert id="save" parameterType="citic.gack.sso.entity.SysArea">
+		insert into
+		SYS_AREA(AREA_ID,PARENT_ID,AREA_SPEC_ID,CODE,NAME,ABBR,SORT_POSITION,IS_CENTER,LONGITUDE,LATITUDE,GEO_AREA_ID,FULL_NAME,REMARKS,STS,CREATE_DATE,
+		CREATOR,VERSION,OPERATE_DATE,OPERATOR ,operator_id,creator_id)
+		values
+		(#{areaId},#{parentId},#{areaSpecId},#{code},#{name},#{abbr},#{sortPosition},#{isCenter},#{longitude,jdbcType=VARCHAR},#{latitude,jdbcType=VARCHAR},#{geoAreaId,jdbcType=VARCHAR},#{fullName,jdbcType=VARCHAR},#{remarks,jdbcType=VARCHAR},#{sts},
+		str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),
+		#{operator},1,str_to_date(#{createDate},'%Y-%m-%d
+		%H:%i:%s'),#{creator},#{creatorId},#{operatorId})
+	</insert>
+
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysArea">
+		update SYS_AREA set
+		PARENT_ID=#{parentId},operator_id=#{operatorId},AREA_SPEC_ID=#{areaSpecId},CODE=#{code},NAME=#{name},ABBR=#{abbr},SORT_POSITION=#{sortPosition},IS_CENTER=#{isCenter},LONGITUDE=#{longitude,jdbcType=VARCHAR},LATITUDE=#{latitude,jdbcType=VARCHAR},GEO_AREA_ID=#{geoAreaId,jdbcType=VARCHAR},FULL_NAME=#{fullName,jdbcType=VARCHAR},REMARKS=#{remarks,jdbcType=VARCHAR},STS=#{sts},
+		OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d
+		%H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where
+		AREA_ID=#{areaId} and VERSION=#{version}
+	</update>
+
+	<update id="deleteById" parameterType="citic.gack.sso.entity.SysArea">
+		update SYS_AREA SET
+		STS=#{sts},OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d
+		%H:%i:%s'),OPERATOR=#{operator},operator_id=#{operatorId},VERSION=VERSION+1 where AREA_ID=#{areaId}
+	</update>
+
+	<select id="queryList" resultType="citic.gack.sso.entity.SysArea"
+		parameterType="citic.gack.sso.entity.SysArea">
+		select AREA_ID,NAME,PARENT_ID from SYS_AREA where STS='A'
+		<if test="areaId ==null">
+			and ( PARENT_ID is null or PARENT_ID='')
+		</if>
+		<if test="areaId !=null and areaId !=''">
+			and PARENT_ID = #{areaId}
+		</if>
+
+	</select>
+
+	<select id="queryById" resultType="citic.gack.sso.admin.dto.AreaDTO"
+		parameterType="citic.gack.sso.entity.SysArea">
+		select
+		A.AREA_ID,A.PARENT_ID,A.AREA_SPEC_ID,A.CODE,A.NAME,A.ABBR,A.SORT_POSITION,
+		A.IS_CENTER,A.LONGITUDE,A.LATITUDE,A.GEO_AREA_ID,A.FULL_NAME,A.REMARKS,A.STS,
+		date_format(A.OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE
+		,date_format(A.CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE
+		,A.operator,A.creator,a.VERSION,a.operator_id,a.creator_id,
+		B.NAME parentName from SYS_AREA A left
+		join SYS_AREA B
+		ON
+		A.PARENT_ID=B.AREA_ID where A.STS='A' and
+		A.AREA_ID=#{areaId}
+	</select>
+
+
+</mapper>

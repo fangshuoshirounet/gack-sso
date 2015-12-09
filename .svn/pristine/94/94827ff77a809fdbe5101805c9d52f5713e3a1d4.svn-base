@@ -1,0 +1,206 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="shiro" uri="http://shiro.apache.org/tags" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="theme" value="${sessionScope.theme}" />
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<fmt:setLocale value="${LANGUAGE}"/>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<title>催收系统</title>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<link type="image/x-icon" href="${ctx}/resources/themes/${THEME}/images/favicon.ico" rel="shortcut icon" />
+ 
+<link rel="stylesheet" type="text/css" href="${ctx}/resources/themes/${THEME}/css/easyui.css">
+<link rel="stylesheet" type="text/css" href="${ctx}/resources/themes/${THEME}/css/icon.css">
+<link rel="stylesheet" type="text/css" href="${ctx}/resources/themes/${THEME}/css/application.css">
+<link rel="stylesheet" type="text/css" href="${ctx}/resources/themes/${THEME}/css/main.css">
+<script src="${ctx}/resources/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
+<script src="${ctx}/resources/jquery/1.8.3/jquery.json.min.js" type="text/javascript"></script>
+<script src="${ctx}/resources/easyui/1.3.2/easyui.customize.min.js" type="text/javascript"></script>
+<script src="${ctx}/resources/easyui/1.3.2/easyui-lang-${LANGUAGE}.js" type="text/javascript"></script>
+<script src="${ctx}/resources/jquery-form/3.25.0/jquery.form.js" type="text/javascript"></script>
+<script src="${ctx}/resources/nicescroll/jquery.nicescroll.min.js" type="text/javascript"></script>
+<script src="${ctx}/resources/themes/${THEME}/js/main_${LANGUAGE}.js" type="text/javascript"></script>
+<script src="${ctx}/resources/my97DatePicker/${LANGUAGE}_WdatePicker.js" type="text/javascript"></script>
+<script type="text/javascript" src="${ctx}/resources/ckeditor/ckeditor.js"></script>
+
+ 
+<script type="text/javascript">
+//<![CDATA[
+	var menu = ${menu};
+	var catalog = ${catalog};
+	var imgPath = "${ctx}/resources/themes/${THEME}/images";
+	var path = "${ctx}";
+	var currentPageSize = null;
+	var naviArray = new Array();
+	var inactiveDaysMsg = '${inactiveDaysMsg}';
+	$(function(){
+		for(var i=0;i<catalog.length;i++){
+			if(catalog[i].parentCatalogId == "")
+				naviArray.push(catalog[i]);
+		}
+		currentPageSize = 
+		//添加导航栏
+		changeNavi(true,naviArray,currentPageSize);
+		//添加导航栏click事件
+		$('#naviUL li a').live('click',function(){
+			$(this).addClass('menu-selected');
+			$(this).parent().siblings("li").each(function(){
+				$(this).find("a").removeClass('menu-selected');
+			});
+		});
+		//默认执行第一个的click事件
+		$('#naviUL li:first a').click();
+		$(window).resize(function() {
+			changeNavi(false,naviArray,currentPageSize);
+			$('#wrapper').layout('resize');
+		});
+		//功能菜单上的折叠按钮
+		$('.panel-tool').css({'left':'80px'});
+		$('#menuDiv .panel-tool:eq(0)').before('<div id="collapse_div" title=\'<fmt:message key="credithc.sys.main.accordion" bundle="${systemBundle}"></fmt:message>\'></div>');
+		$('#collapse_div').css({'position':'absolute','left':'200px','top':'10px','height':'20px','width':'20px','background':'url('+imgPath+'/collapse.png) no-repeat'});
+		$('#collapse_div').click(function(){
+			$('#wrapper').layout('collapse','west'); 
+			return false;
+		});
+		//快捷菜单上的编辑按钮
+		$('#menuDiv .panel-tool:eq(1)').before('<div id="edit_shortcut" title=\'<fmt:message key="credithc.sys.main.shortcutmenu.edit" bundle="${systemBundle}"></fmt:message>\'></div>');
+		$('#edit_shortcut').css({'position':'absolute','left':'200px','top':'10px','height':'20px','width':'20px','background':'url('+imgPath+'/update2.png) no-repeat'});
+		$('#edit_shortcut').click(function(){
+			createTabs('${ctx}/security/shortcutmenu','<fmt:message key="credithc.sys.main.shortcutmenu.maintain" bundle="${systemBundle}"></fmt:message>');
+			return false;
+		});
+		$("#funcDiv,#shortcut").niceScroll({
+				touchbehavior:false,
+				cursorcolor:"#16628E",//光标颜色
+				cursoropacitymin:1.0,//没有触发时透明度
+				cursoropacitymax:1.0,//触发时颜色透明度
+				cursorwidth:6,//光标的宽度
+				cursorborderradius:"24px",//边框半径
+				background:"#cdcdcd",
+				horizrailenabled:false,
+				autohidemode:"scroll"});
+				
+		$("#naviUL li a").click(function(){
+			$(this).removeClass("menu-selected");
+			$(this).addClass("menu-selected");
+			$(this).parent().siblings("li").chirdren("a").removeClass("menu-selected");
+		});
+		
+		 //选择语言
+	    $('#language').val('${LANGUAGE}');
+	    $('#language').change(function(){
+	        var language = $(this).val();
+	        window.location.href="${ctx}/home?language="+language;
+	    });
+	    if(inactiveDaysMsg != '') {
+		    $.messager.show({title: '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:', msg : inactiveDaysMsg, timeout: 5000, showType: 'slide'});
+	    }
+		
+	});
+	//关闭预览图片
+	function closePic(){
+		$('#divTest').hide();
+		$('#showImg').attr('src','');
+	}
+	//打开预览图片
+	function showPic(url){
+		  $('#showImg').attr('src',url+"?radom="+Math.random());
+		 $('#divTest').show();
+	}
+	function updateUserpwd(){
+		var url="${ctx}/updateuserpwd";
+		$("#model1").dialog({
+            href: url,
+            height: 174,
+            width: 370,
+            title: '<fmt:message key="credithc.sys.main.edit.password" bundle="${systemBundle}"></fmt:message>'
+        });
+	}
+//]]>
+</script>
+</head>
+<div id="wrapper" class="easyui-layout" border="false" fit="true">
+	<div data-options="region:'north'" style="height: 48px">
+		<div class="top-area">
+			<!-- <div class="branding"></div> -->
+			<div class="header">
+				<div class="toplinks">
+					<div class="topic"></div>
+					<div class="navi">
+						<ul id="naviUL"></ul>
+					</div>
+					<%-- <div class="navitool">
+						<a href="javascript:void(0)" onclick="changeNavi(false,naviArray,currentPageSize);">
+							<span id="ct">1</span><img style="border: 0;"
+							src="${ctx}/resources/themes/${THEME}/images/menu_tool.png">
+							</img><span id="tt">1</span>
+						</a> 
+					</div> --%>
+					<div class="toptool">
+						<span>用户：<shiro:principal/>! | <a href="javascript:updateUserpwd()" style="color:#FFF;text-decoration: none;">修改密码</a></span> |
+						<a href="${ctx}/logout"><img align="absmiddle" style="border:0;" src="${ctx}/resources/themes/${THEME}/images/logout.png" title='<fmt:message key="credithc.sys.main.logout" bundle="${systemBundle}"></fmt:message>'/></a>
+			    		<c:if test="${LANGUAGE_DISPLAY}">
+				    		<select id="language" style="margin-right:10px;">
+				    			<c:forEach var="language" items="${LANGUAGE_OPTIONS}">
+				    				<option value="${language}"><fmt:message key="${language}" bundle="${systemBundle}"></fmt:message></option>
+				    			</c:forEach>
+				    		</select>
+				    	</c:if>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+	<div data-options="region:'south'" style="height: 32px;overflow: hidden">
+		<div class="bottom-area">
+			<div class="bottom-left">Credithc V1.0</div>
+			<div class="bottom-right">Copyright&reg;2015 Credithc.csm Design</div>
+			<div class="bottom-middle">&nbsp;</div>
+		</div>
+	</div>
+	<div id="menuDiv" class="level-1" data-options="region:'west'" style="width: 230px; height:100%;">
+		<div class="easyui-accordion" fit="true">
+			<div id="funcDiv" title='<fmt:message key="credithc.sys.main.function.menu" bundle="${systemBundle}"></fmt:message>'>
+			</div>
+			<div title='<fmt:message key="credithc.sys.main.shortcut.menu" bundle="${systemBundle}"></fmt:message>' id="shortcut">
+				<ul id="shortcut_menu">
+					<c:forEach var="item" items="${shortcutMenuDTOs}">
+					  	<li><a onclick="createTabs('${ctx}${item.menuUrl}','${item.sts}');" href="javascript:void(0)">${item.sts}</a></li>
+					</c:forEach>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div data-options="region:'center'">
+		<%-- <div id="workTabs" class="easyui-tabs" fit="true">
+			<div title='<fmt:message key="credithc.sys.main.homepage" bundle="${systemBundle}"></fmt:message>' style="width:100%;height:100%;border:0;"> --%>
+				  <iframe id="firstPage" name="firstPage"  scrolling=no style="width:100%;height:100%;border:0;" frameborder="0" src="${ctx}/toPageSetting"></iframe>
+		<!-- 	</div>
+		</div> -->
+	</div>
+</div>
+<!-- 一级弹出窗体 -->
+<div id="model_level1">
+	<div id="model1"></div>
+</div>
+<!-- 二级弹出窗体 -->
+<div id="model_level2">
+	<div id="model2"></div>
+</div>
+
+<!-- 图片预览 -->
+<div id="divTest" style="width:100%;height:100%;);border:1px solid #999;position:absolute;top:0;left:0;text-align:center;z-index:10;display:none;overflow-y:auto;">
+	<span><div style="float:right;margin-right:20px;"><img src="${ctx}/resources/themes/${THEME}/images/close.png" onclick="closePic();" ></div></span>
+	<img src="" id='showImg'><br/>
+</div>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

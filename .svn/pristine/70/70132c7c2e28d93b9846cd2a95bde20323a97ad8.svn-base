@@ -1,0 +1,32 @@
+<%@ tag pageEncoding="UTF-8" %>
+<%@ tag import="com.credithc.csm.util.CacheManager" %>
+<%@ tag import="com.credithc.csm.entity.Status" %>
+<%@ tag import="java.util.List" %>
+<%@ attribute name="name" type="java.lang.String" required="true" %>
+<%@ attribute name="value" type="java.lang.String" required="false" %>
+<%@ attribute name="tableName" type="java.lang.String" required="true" %>
+<%@ attribute name="columnName" type="java.lang.String" required="true" %>
+<%@ attribute name="required" type="java.lang.Boolean" required="true" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%
+    CacheManager cacheManager = CacheManager.getInstance();
+    List<Status> statusList = (List<Status>) cacheManager.get("table.cache.idlist.status", tableName + "." + columnName);
+
+    request.setAttribute("statusList", statusList);
+%>
+ <c:forEach items="${statusList}" var="status">
+  	<c:choose>
+  	<c:when test="${status.stsId == value }">
+    	<input class="easyui-validatebox" type="radio"   name="${name}"  value="${status.stsId}" checked="checked" style="width:10px;"/>${status.stsWords}
+    </c:when>
+    <c:when test="${required }">
+    	<input class="easyui-validatebox" type="radio"   name="${name}"  value="${status.stsId}" checked="checked"  style="width:10px;"/>${status.stsWords}
+    </c:when>
+    <c:otherwise>
+    	<input class="easyui-validatebox" type="radio" name="${name}"  value="${status.stsId}"  style="width:10px;"/>${status.stsWords}
+    </c:otherwise>
+  </c:choose>
+ </c:forEach>
+
+
+

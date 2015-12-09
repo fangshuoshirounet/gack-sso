@@ -1,0 +1,49 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+	<input name="_method" value="put" type="hidden"/>
+		 <div class="info-form" data-options="region:'center'">
+		 	<fieldset>
+		 		 <legend><fmt:message key="credithc.sys.post.info" bundle="${systemBundle}"></fmt:message></legend>
+		 		 <table class="table-info">
+					<tr><th>
+						<label><fmt:message key="credithc.sys.post.name" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.name}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<tags:showlabel-status columnName="STS" tableName="POSITION" value="${model.sts}"></tags:showlabel-status>&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.operateDate}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.createDate}&nbsp;
+					</td></tr>
+					<tr class="row2"><th>
+						<label><fmt:message key="credithc.sys.post.remarks" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<textarea readonly>${model.remarks}</textarea>
+					</td></tr>
+		 		 </table>
+		 	</fieldset>
+		 </div>
+		 <div class="buttons" data-options="region:'south'">
+		 	<input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+         </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+//关闭页面
+$(function(){
+	 $("#closeSubmitBtn").click(function(){
+		  top.closeDialog();
+	 }); 
+});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

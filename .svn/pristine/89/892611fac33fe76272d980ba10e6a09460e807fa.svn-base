@@ -1,0 +1,74 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	 <div id="top" data-options="region:'north'" class="nav">
+		  <table class="nav-table">
+			  <tr>
+				  <td class="guide-first-unselected"></td>
+				  <td class="guide-unselected-step" id="step1">1<fmt:message key="credithc.sys.rolepermission.role" bundle="${systemBundle}"></fmt:message></td>	
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step3">2<fmt:message key="credithc.sys.rolepermission.permission" bundle="${systemBundle}"></fmt:message></td>		
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step2">3<fmt:message key="credithc.sys.rolepermission.catalog" bundle="${systemBundle}"></fmt:message></td>	
+				  <td class="guide-split-selected"></td>
+				  <td class="guide-selected-step" id="step4">4<fmt:message key="credithc.sys.rolepermission.view" bundle="${systemBundle}"></fmt:message></td>
+			      <td class="guide-unselected-step"></td>
+			  </tr> 
+           </table>
+	</div> 
+    <!-- 中间区域 -->
+    <div data-options="region:'center'" class="no-border">
+        <div class="easyui-layout" data-options="fit:true">
+            <!-- 下部:显示列表-->
+            <div id="flexgrid" data-options="region:'center'" class="content">
+                <table id="flexTable"></table>
+                 <form id="menuPrivilegeForm" method="post">
+					<input type="hidden" name="roleId" id="roleId" value="${model.roleId }"/>
+				</form>
+            </div>
+           
+            <div data-options="region:'south'" class="buttons">
+            	<input type="button" class="button" id="menuBackBtn" value="<fmt:message key='credithc.sys.button.up' bundle='${systemBundle}'></fmt:message>"/>
+            </div>
+        </div>
+    </div>
+</div> 
+<script type="text/javascript">
+//<![CDATA[
+$("#menuBackBtn").click(function(){
+	var url='${ctx}/security/rolepermission/permission?roleId='+${model.roleId}+'&permissionType=menucatalog' ;
+	window.location.href=url;
+});
+
+$("#flexTable").flexigrid({
+	title :"<fmt:message key="credithc.sys.rolepermission.list" bundle="${systemBundle}"></fmt:message>",
+	dataType : 'json',
+	sortorder : "desc",
+	autoload : true,
+	url:"${ctx}/security/rolepermission/rolepermissionview",
+	checkbox:false,
+	usepager: false,
+	colModel : [{
+		display : '<fmt:message key="credithc.sys.rolepermission.menu" bundle="${systemBundle}"></fmt:message>',
+		name : 'menuName',
+		sortable : true,
+		align : 'center',
+		width:"200px"
+	}, {
+		display : '<fmt:message key="credithc.sys.rolepermission.address" bundle="${systemBundle}"></fmt:message>',
+		name : 'menuUrl',
+		sortable : true,
+		align : 'center',
+		width:"300px"
+	},{
+		display : '<fmt:message key="credithc.sys.rolepermission.access" bundle="${systemBundle}"></fmt:message>',
+		name : 'permissionHtml',
+		sortable : true,
+		align : 'center',
+		width:"500px"
+	}]
+});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

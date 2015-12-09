@@ -1,0 +1,272 @@
+package citic.gack.sso.admin.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import citic.gack.sso.admin.dto.ShortcutMenuDTO;
+import citic.gack.sso.admin.security.SecurityManager;
+import citic.gack.sso.admin.service.ShortcutMenuService;
+import citic.gack.sso.base.BaseController;
+import citic.gack.sso.base.PageInfo;
+import citic.gack.sso.base.exception.SysException;
+import citic.gack.sso.entity.SysMenu;
+import citic.gack.sso.entity.SysMenuCatalog;
+import citic.gack.sso.entity.SysShortcutMenu;
+import citic.gack.sso.entity.SysUser;
+import net.sf.json.JSONArray;
+import net.sf.json.JsonConfig;
+
+@Controller
+@RequestMapping("/security/shortcutmenu")
+public class ShortcutMenuController extends BaseController<SysShortcutMenu> {
+	private static Logger logger = LoggerFactory.getLogger(ShortcutMenuController.class);
+	private static final String BUSINESS_PATH = "/admin/security/shortcutmenu";
+
+	@Autowired
+	private ShortcutMenuService shortcutMenuService;
+
+	/**
+	 * 返回首页
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.GET)
+	public ModelAndView index(HttpServletRequest request) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		List<SysMenuCatalog> catalogs = SecurityManager.getSessionUser().getMenuCatalog();
+
+		// 为了IE8问题，以及刷新缓存问题，临时添加
+		for (SysMenuCatalog catalog : catalogs) {
+			catalog.setSts(catalog.getCatalogName());
+		}
+		String catalog = JSONArray.fromObject(catalogs).toString();
+		List<SysMenu> menus = SecurityManager.getSessionUser().getMenu();
+
+		// 为了IE8问题，以及刷新缓存问题，临时添加
+		for (SysMenu menu : menus) {
+			menu.setSts(menu.getMenuName());
+		}
+		String menu = JSONArray.fromObject(menus).toString();
+		ShortcutMenuDTO menuDTO = new ShortcutMenuDTO();
+		menuDTO.setSysUserId(SecurityManager.getSessionUser().getSysUserId());
+		List<ShortcutMenuDTO> shortcutMenuDTOs = new ArrayList<ShortcutMenuDTO>();
+		shortcutMenuDTOs = shortcutMenuService.queryList(menuDTO);
+
+		for (SysMenu item : menus) {
+			if (!shortcutMenuDTOs.contains(item)) {
+				shortcutMenuDTOs.remove(item);
+			}
+		}
+		for (ShortcutMenuDTO item : shortcutMenuDTOs) {
+			item.setSts(item.getMenuName());
+		}
+		String shortcutMenu = JSONArray.fromObject(shortcutMenuDTOs).toString();
+		mv.addObject("catalog", catalog);
+		mv.addObject("menu", menu);
+		mv.addObject("shortcutMenu", shortcutMenu);
+		mv.addObject("shortcutMenulist", shortcutMenuDTOs);
+		mv.addObject("sysUserId", SecurityManager.getSessionUser().getSysUserId());
+		mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_INDEX));
+		return mv;
+	}
+
+	/**
+	 * 返回JSON信息 如果增加成功返回{message:MESSAGE_CREATE} 失败{message:异常信息}
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> createNew(HttpServletRequest request, SysShortcutMenu model) throws SysException {
+
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			SysUser sysUser = SecurityManager.getSessionUser();
+			String userId = sysUser.getSysUserId();
+			String userName = sysUser.getName();
+			model.setCreator(userName);
+			model.setCreatorId(userId);
+			shortcutMenuService.insert(model);
+			appInfo.put("message", MESSAGE_CREATE);
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_CREATE_FAIL);
+		}
+		return appInfo;
+
+	}
+
+	/**
+	 * 一开始使用@PathVariable("id") String
+	 * id只注入id，但很多业务还需要获取更多参数，所以作为共用方法注入HttpServletRequest 去查看界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	public ModelAndView show(HttpServletRequest request, String id) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		SysShortcutMenu model = new SysShortcutMenu();
+		model.setShortcutMenuId(id);
+		try {
+			model = shortcutMenuService.queryBean(model);
+			mv.addObject("model", model);
+			mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_SHOW));
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return mv;
+
+	}
+
+	/**
+	 * 去编辑界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}/edit", method = RequestMethod.GET)
+	public ModelAndView edit(HttpServletRequest request, String id) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		SysShortcutMenu model = new SysShortcutMenu();
+		model.setShortcutMenuId(id);
+		try {
+			model = shortcutMenuService.queryBean(model);
+			mv.addObject("model", model);
+			mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_EDIT));
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return mv;
+	}
+
+	/**
+	 * 去新增界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/new", method = RequestMethod.GET)
+	public String editNew(HttpServletRequest request) throws SysException {
+		return getMappingUrl(BUSINESS_PATH, PAGE_EDITNEW);
+	}
+
+	/**
+	 * 分页查询返回pageInfo对象 model如果属性很多都从request中获取很麻烦，不如自己驱动模型
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.POST, params = "search=true")
+	public PageInfo search(HttpServletRequest request, SysShortcutMenu model) throws SysException {
+		PageInfo pageInfo = getPageInfo(request);
+		try {
+			pageInfo = shortcutMenuService.queryListByPage(model, pageInfo);
+		} catch (SysException e) {
+		}
+
+		return pageInfo;
+	}
+
+	/**
+	 * 确定修改操作 如果修改成功返回{message:MESSAGE_UPDATE} 失败{message:异常信息}
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	public @ResponseBody
+	Map<String, Object> update(HttpServletRequest request, SysShortcutMenu model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+
+		String json = request.getParameter("json");
+		JSONArray jsonArray = JSONArray.fromObject(json);
+		List<SysShortcutMenu> shortcutMenus = JSONArray.toList(jsonArray, new SysShortcutMenu(), new JsonConfig());
+		try {
+
+			shortcutMenuService.update(shortcutMenus);
+			ShortcutMenuDTO menuDTO = new ShortcutMenuDTO();
+			menuDTO.setSysUserId(SecurityManager.getSessionUser().getSysUserId());
+			List<ShortcutMenuDTO> shortcutMenuDTOs = new ArrayList<ShortcutMenuDTO>();
+			try {
+				shortcutMenuDTOs = shortcutMenuService.queryList(menuDTO);
+			} catch (Exception e) {
+				appInfo.put("message", MESSAGE_UPDATE_FAIL);
+			}
+			List<SysMenu> menus = SecurityManager.getSessionUser().getMenu();
+			for (SysMenu item : menus) {
+				if (!shortcutMenuDTOs.contains(item)) {
+					shortcutMenuDTOs.remove(item);
+				}
+			}
+
+			// 为了IE8问题，以及刷新缓存问题，临时添加
+			for (ShortcutMenuDTO menu : shortcutMenuDTOs) {
+				menu.setSts(menu.getMenuName());
+			}
+
+			String shortcutMenu = JSONArray.fromObject(shortcutMenuDTOs).toString();
+			appInfo.put("message", shortcutMenu);
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_UPDATE_FAIL);
+		}
+		return appInfo;
+	}
+
+	/**
+	 * 确定删除操作 如果删除成功返回{message:MESSAGE_DESTROY} 失败{message:异常信息}
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	Map<String, Object> destroy(HttpServletRequest request, String id) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		List<SysShortcutMenu> delList = new ArrayList<SysShortcutMenu>();
+		SysUser sysUser = SecurityManager.getSessionUser();
+		String userId = sysUser.getSysUserId();
+		String userName = sysUser.getName();
+		if (StringUtils.isNotBlank(id)) {
+			String[] uniKey = id.split("-");
+			if (uniKey != null && uniKey.length > 0) {
+				for (String string : uniKey) {
+					SysShortcutMenu shortcutMenu = new SysShortcutMenu();
+					shortcutMenu.setShortcutMenuId(string);
+					shortcutMenu.setOperatorId(userId);
+					shortcutMenu.setOperator(userName);
+					delList.add(shortcutMenu);
+				}
+				try {
+					shortcutMenuService.deleteBatch(delList);
+					appInfo.put("message", MESSAGE_DESTROY);
+				} catch (SysException e) {
+					appInfo.put("message", MESSAGE_DESTROY_FAIL);
+				}
+			}
+		}
+		return appInfo;
+	}
+
+}

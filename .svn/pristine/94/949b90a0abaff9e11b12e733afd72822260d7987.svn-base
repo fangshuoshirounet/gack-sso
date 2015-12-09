@@ -1,0 +1,74 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ include file="/WEB-INF/views/common/top.jsp" %>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<!-- 查询列表页面-->
+<div class="easyui-layout" data-options="fit:true">
+    <!-- 中间:显示列表-->
+    <div id="flexgrid" data-options="region:'center'" class="content">
+        <table id="flexTable">
+        </table>
+    </div>
+    <!-- 底部:操作按钮-->
+    <div class="buttons" data-options="region:'south'">
+		<input type="button" class="button" id="cacherefreshBtn" value="<fmt:message key='credithc.sys.cacherefresh' bundle='${systemBundle}'></fmt:message>"/>
+        <input type="button" class="button" id="allcacherefreshBtn" value="<fmt:message key='credithc.sys.cacherefresh.all' bundle='${systemBundle}'></fmt:message>"/>
+    </div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+    $(function () {
+        $("#flexTable").flexigrid({
+            url: "${ctx}/public/cacherefresh?search=true",
+			title:'<fmt:message key="credithc.sys.cache.list" bundle="${systemBundle}"></fmt:message>',
+			autoload : true,
+			usepager: false,
+			height : flexgirdHeight+30,
+            colModel: [
+                {
+                    display: '<fmt:message key="credithc.sys.cache.name" bundle="${systemBundle}"></fmt:message>',
+                    name: 'cacheName',
+                    width: 500,
+                    sortable: true,
+                    align: 'center',
+                    hide: false,
+                    toggle: false
+                }
+            ]
+        });
+        //刷新选中缓存
+        $("#cacherefreshBtn").click(function () {
+        	if (validateSelected(true)) {
+        		$.messager.confirm('<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>', '<fmt:message key="credithc.sys.show.info.cache" bundle="${systemBundle}"></fmt:message>', function(r){
+        			if(r)
+        			{
+	        			var cacheNames = getSelectRowByName("cacheName");
+	        			var random = Math.floor(Math.random()*1000+1);
+	        			var validateurl = "${ctx}/public/cacherefresh/recachebyname?cacheNames="+cacheNames+"&random="+random;
+	    			    $.getJSON(validateurl, function (data) {
+	    			    	if(data.message!=null){
+	    			    		$.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 2000,showType : 'slide'});
+	    			    	}
+	    			    });
+        			}
+            	});
+        	}
+        });
+        //刷新全部缓存
+        $("#allcacherefreshBtn").click(function () {
+        	$.messager.confirm('<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>', '<fmt:message key="credithc.sys.show.info.allcache" bundle="${systemBundle}"></fmt:message>', function(r){
+	    		if(r)
+	        	{	
+	        		var random = Math.floor(Math.random()*1000+1);
+	    			var validateurl = "${ctx}/public/cacherefresh/reallcache?random="+random;
+				    $.getJSON(validateurl, function (data) {
+				    	if(data.message!=null){
+				    		$.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 2000,showType : 'slide'});
+				    	}
+				    });
+	        	}
+        	});
+        });
+    });
+  //]]>    
+ </script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp" %>

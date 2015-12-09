@@ -1,0 +1,143 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+    <div class="info-form" data-options="region:'center'">
+		<form method="post" id="editForm">
+			  <input type="hidden"   name="staffId" value="${model.staffId}" ></input>
+			  <input name="createDate" value="${model.createDate}" type="hidden"/>
+		<input name="creator" value="${model.creator}" type="hidden"/>
+		<input name="version" value="${model.version}" type="hidden"/>
+           	  <fieldset>
+                <legend><fmt:message key="credithc.sys.staff.info" bundle="${systemBundle}"></fmt:message></legend>
+                <table class="table-info">
+                    <tr><th>
+                        <label class="required"><fmt:message key="credithc.sys.staff.employeename" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        <input class="easyui-validatebox" type="text" name="name" value="${model.name}" required="required" maxlength="16" placeholder="请输入姓名"/>
+                    </td><th>
+                        <label class="required"><fmt:message key="credithc.sys.staff.sex" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        <tags:radio-status required="false" columnName="SEX" tableName="STAFF" name="sex" value="${model.sex}"/>
+                    </td></tr>
+                    <tr>
+						<th><label class="required">员工编号</label></th>
+						<td><input data-options="required:true" type="text"
+							maxlength="8" name="employeeNo"  value="${model.employeeNo}"/></td>
+						<th><label>员工次序</label></th>
+						<td><input data-options="required:true" type="text"
+							maxlength="8" name="positionNo"  value="${model.positionNo}"/></td>
+					</tr>
+					<tr>
+						<th><label>家庭电话</label></th>
+						<td><input data-options="required:true" type="text"
+							maxlength="8" name="homePhone"  value="${model.homePhone}"/></td>
+						<th><label>手机</label></th>
+						<td><input data-options="required:true" type="text"
+							maxlength="11" name="mobile"  value="${model.mobile}"/></td>
+					</tr>
+                    
+                    
+                    
+                     <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.birth.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        <input type="text" data-options="required:false" name="birthday" value="${model.birthday}" onClick="WdatePicker({dateFmt:'yyyy-MM-dd'});"/>
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.acronym" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<input type="text" data-options="required:false" name="acronym" maxlength="8" value="${model.acronym}"   ></input>
+                    </td></tr>
+                    <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.political.landscape" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<input type="text" data-options="required:false" name="politicalStatus" maxlength="16" value="${model.politicalStatus}"  ></input>
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.ethnic" bundle="${systemBundle}"></fmt:message></label></th><td>
+                       	<input type="text" data-options="required:false" name="nation" maxlength="16" value="${model.nation}" ></input>
+                    </td></tr>
+                    <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.graduated" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<input type="text" data-options="required:false" name="college" maxlength="64" value="${model.college}"  ></input>
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.profession" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<input type="text" data-options="required:false" name="major" maxlength="64" value="${model.major}"  ></input>
+                    </td></tr>
+                   <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.hometown" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        <input type="text" data-options="required:false" name="nativePlace" maxlength="128" value="${model.nativePlace}" ></input>
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.addre" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        <input type="text" data-options="required:false" name="address" maxlength="64" value="${model.address}" ></input>
+                    </td></tr>
+                </table>
+            </fieldset>
+            <fieldset>
+                <legend><span class="legnedspan"><fmt:message key="credithc.sys.staff.company.Info" bundle="${systemBundle}"></fmt:message></span></legend>
+                <table class="table-info">
+                    <tr><th>
+                        <label class="required"><fmt:message key="credithc.sys.org" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        <input id="parentOrgTree" value="${model.orgId}" name="orgId" data-options="multiple:false,required:true" style="width:182px">
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.post" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        <input type="text" data-options="required:false" name="jobTitle" maxlength="64" value="${model.jobTitle}"  ></input>
+                    </td></tr>
+                    <tr><th>
+                        <label class="required"><fmt:message key="credithc.sys.staff.contract" bundle="${systemBundle}"></fmt:message></label></th><td>
+                         <tags:radio-status required="false" columnName="CONTRACT_TYPE" tableName="STAFF" name="contractType" value="${model.contractType}"/>
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.contact" bundle="${systemBundle}"></fmt:message></label></th><td>
+                        <input class="easyui-numberbox" type="text" data-options="required:false" name="telNbr" maxlength="32" value="${model.telNbr}"  ></input>
+                    </td></tr>
+					 <tr><th>
+                        <label><fmt:message key="credithc.sys.staff.entry.time" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<input  type="text" value="${model.workDate}" data-options="required:false" name="workDate" onClick="WdatePicker()"/> 
+                    </td> <th>
+                        <label><fmt:message key="credithc.sys.staff.company.mail" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<input class="easyui-validatebox" id="email" type="text"  maxlength="32" validType="email" name="mailbox" value="${model.mailbox}"  ></input>
+                    </td>
+                    </tr><tr class="row2"> <th>
+                     <label><fmt:message key="credithc.sys.remarks" bundle="${systemBundle}"></fmt:message></label></th><td  colspan="3">
+                        <textarea data-options="required:false" maxlength="32" name="remarks"  style="width:500px">${model.remarks}</textarea>
+                    </td></tr>
+                </table>
+            </fieldset>
+    	</form>
+    </div>
+	<div class="buttons" data-options="region:'south'">
+	    <button class="button" id="btnSubmit"><fmt:message key='credithc.sys.button.submit' bundle='${systemBundle}'></fmt:message></button>
+		<button class="button" id="btnCancel"><fmt:message key='credithc.sys.button.cancel' bundle='${systemBundle}'></fmt:message></button>
+	</div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+$(".info-form input[type='text']").css({"width": "180px"});           
+$(function(){
+	 $('#email').validatebox({ 
+		required:false 
+	 }); 
+	 $("#parentOrgTree").combotree({
+      	 url:'${ctx}/organization/staff/treejson?isChild=true'
+   	 });
+	 //验证
+	 var key="${model.staffId}";
+	 $('#editForm').ajaxForm({
+	    url:"${ctx}/organization/staff/"+key+"?_method=PUT",
+	    beforeSubmit:function(formData, jqForm){
+            return jqForm.form('validate');
+        },
+		success:function(data){
+			getDtt().refresh();
+		 	top.closeDialog();		
+		 	$.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 2000,showType : 'slide'});
+		}
+	 });
+	 //表单提交
+     $("#btnSubmit").click(function(){
+		$("#editForm").submit();
+	 });
+ 	//关闭页面
+	 $(function() {
+		$("#btnCancel").click(function() {
+			 top.closeDialog();
+		});	 
+	});
+});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

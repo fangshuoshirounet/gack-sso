@@ -38,7 +38,7 @@
 		xmlns="http://www.springframework.org/schema/security">
 		<anonymous enabled="false" />
 		<!-- 拦截器设置，访问资源需要有ROLE_USER的权限 -->
-		<intercept-url pattern="/users/**" access="ROLE_USER" />
+		<intercept-url pattern="/users/me" access="USERMANAGE:USER:ME" />
 		<!-- 自定义过滤器 -->
 		<custom-filter ref="userResourceServerFilter" before="PRE_AUTH_FILTER" />
 		<!-- 权限审核失败处理 -->
@@ -46,21 +46,17 @@
 		<http-basic />
 	</http>
 
-	<oauth:resource-server id="userResourceServerFilter"
-		resource-id="r_users" token-services-ref="tokenServices" />
+	<oauth:resource-server id="userResourceServerFilter"	resource-id="r_users" token-services-ref="tokenServices" />
 	<!-- resource server close -->
 	
 	<http
-		disable-url-rewriting="true" xmlns="http://www.springframework.org/schema/security">
-		<access-denied-handler error-page="/login.jsp?authorization_error=true"/>
-<!-- 		<intercept-url pattern="/oauth/**" access="ROLE_USER" /> -->
+		disable-url-rewriting="true" xmlns="http://www.springframework.org/schema/security" access-decision-manager-ref="">
+		<access-denied-handler error-page="/login?authorization_error=true"/>
+		<intercept-url pattern="/oauth/**" access="IS_AUTHENTICATED_FULLY " />
 <!-- 		<intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" /> -->
-		<intercept-url pattern="/login.jsp" access="IS_AUTHENTICATED_ANONYMOUSLY" />
-		<intercept-url pattern="/**" access="ROLE_USER" />
-		<form-login authentication-failure-url="/login.jsp?authentication_error=true"
-			default-target-url="/index.jsp" login-page="/login.jsp"
-			login-processing-url="/login.do" />
-		<logout logout-success-url="/index.jsp" logout-url="/logout.do" />
+		<intercept-url pattern="/login" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<form-login authentication-failure-url="/login?authentication_error=true"  login-page="/login"
+			login-processing-url="/doLogin" />
 		<anonymous />
 	</http>
 
@@ -97,7 +93,9 @@
 		<constructor-arg>
 			<list>
 				<bean class="org.springframework.security.oauth2.provider.vote.ScopeVoter" />
-				<bean class="org.springframework.security.access.vote.RoleVoter" />
+				<bean class="org.springframework.security.access.vote.RoleVoter" >
+					<property name="rolePrefix" value=""></property>
+				</bean>
 				<bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
 			</list>
 		</constructor-arg>
@@ -130,11 +128,10 @@
 	<sec:authentication-manager>
 		<sec:authentication-provider
 			user-service-ref="userService">
-			<sec:password-encoder hash="md5" />
 		</sec:authentication-provider>
 	</sec:authentication-manager>
 
-	<bean id="userService" class="citic.gack.web.sso.oauth2.GackUserDetailsService" />
+	<bean id="userService" class="citic.gack.sso.web.security.SecUserDetailsService" />
 
 	<oauth:authorization-server
 		client-details-service-ref="clientDetails" token-services-ref="tokenServices"

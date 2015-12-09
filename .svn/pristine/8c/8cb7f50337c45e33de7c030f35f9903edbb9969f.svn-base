@@ -1,0 +1,48 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+		 <div class="info-form" data-options="region:'center'">
+		 	<fieldset>
+		 		 <legend><fmt:message key="credithc.sys.operation.info" bundle="${systemBundle}"></fmt:message></legend>
+		 		 <table class="table-info">
+					<tr><th>
+						<label class="norequired"><fmt:message key="credithc.sys.operation.name" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.operationName}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired"><fmt:message key="credithc.sys.operation.code" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.operationCode}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired"><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<tags:showlabel-status columnName="STS" tableName="OPERATION" value="${model.sts}"></tags:showlabel-status>&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired"><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.operateDate}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label class="norequired"><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.createDate}&nbsp;
+					</td></tr>
+		 		 </table>
+		 	</fieldset>
+		 </div>
+		 <div class="buttons" data-options="region:'south'">
+		 	<input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+         </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+//关闭页面
+$(function(){
+	 $("#closeSubmitBtn").click(function(){
+		 top.closeDialog();
+	 }); 
+});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

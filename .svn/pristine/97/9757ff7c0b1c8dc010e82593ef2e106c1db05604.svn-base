@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.MenuMapper">
+
+	<select id="queryListByPage" resultType="citic.gack.sso.admin.dto.MenuDTO"
+		parameterType="citic.gack.sso.admin.dto.MenuDTO">
+		select
+		MENU_ID,order_no,VERSION,MENU_CATALOG_ID,MENU_NAME,MENU_CODE,MENU_DESC,MENU_URL,STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from Menu where STS='A'
+		<if test="condition.menuName != null and condition.menuName !=''">
+			and MENU_NAME like '%${condition.menuName}%'
+		</if>
+		<if test="condition.menuCode != null and condition.menuCode !=''">
+			and MENU_CODE like '%${condition.menuCode}%'
+		</if>
+		<if test="condition.menuCatalogId != null and condition.menuCatalogId !=''">
+			and MENU_CATALOG_ID = #{condition.menuCatalogId}
+		</if>
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if>
+	</select>
+
+	<select id="queryActiveMenu" resultType="citic.gack.sso.admin.dto.MenuDTO">
+		select 
+		c.MENU_CATALOG_ID,b.order_no,C.VERSION,c.PARENT_CATALOG_ID,c.CATALOG_NAME,b.MENU_ID,b.MENU_NAME,b.MENU_CODE,b.MENU_DESC,b.MENU_URL,b.STS,a.MENU_OPERATION_ID,d.OPERATION_ID,d.OPERATION_NAME,d.OPERATION_CODE
+		from MENU_OPERATION a,MENU b,MENU_CATALOG c,OPERATION d
+		where a.MENU_ID=b.MENU_ID and b.MENU_CATALOG_ID=c.MENU_CATALOG_ID and
+		a.OPERATION_ID=d.OPERATION_ID
+		and a.STS='A' and b.STS='A' and c.STS='A' and d.STS='A' and
+		d.OPERATION_ID=1
+		order by b.order_no
+	</select>
+
+	<select id="queryList" resultType="citic.gack.sso.entity.SysMenu"
+		parameterType="citic.gack.sso.entity.SysMenu">
+		select * from MENU where 1=1
+		<if test="menuName !=null and menuName !=''">
+			and MENU_NAME like '%${menuName}%'
+		</if>
+		<if test="sts !=null and sts !=''">
+			and STS =#{sts}
+		</if>
+		<if test="menuCatalogId !=null and menuCatalogId !=''">
+			and MENU_CATALOG_ID =#{menuCatalogId}  
+		</if>
+		order by  order_no
+	</select>
+
+	<select id="queryMenu" resultType="citic.gack.sso.admin.dto.RolePermissionDTO"
+		parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+		select MENU_ID menuId,MENU_CATALOG_ID menuCatalogId,MENU_NAME,order_no menuName
+		from Menu where STS='A'
+		<if test="menuCatalogId !=null menuCatalogId !=''">
+			and MENU_CATALOG_ID = #{menuCatalogId}
+		</if>
+		order by  order_no
+	</select>
+
+	<select id="querySysUserMenu" resultType="citic.gack.sso.admin.dto.RolePermissionDTO"
+		parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+		select MENU_ID menuId,MENU_CATALOG_ID menuCatalogId,MENU_NAME,order_no menuName
+		from Menu where STS='A'
+		<if test="menuCatalogId !=null menuCatalogId !=''">
+			and MENU_CATALOG_ID = #{menuCatalogId}
+		</if>
+		order by  order_no
+	</select>
+
+	<insert id="save" parameterType="citic.gack.sso.entity.SysMenu">
+		insert into MENU
+		(MENU_ID,MENU_CATALOG_ID,MENU_NAME,MENU_CODE,MENU_DESC,MENU_URL,STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR,CREATOR_ID,OPERATOR_ID,order_no)
+		values(#{menuId},#{menuCatalogId},#{menuName},#{menuCode},#{menuDesc},#{menuUrl},#{sts},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},#{creatorId},#{creatorId},#{orderNo})
+	</insert>
+
+	<update id="deleteById" parameterType="citic.gack.sso.entity.SysMenu">
+		update MENU SET
+		STS=#{sts},   OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1 where MENU_ID=#{menuId}
+	</update>
+
+
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysMenu">
+		update MENU set
+		MENU_CATALOG_ID=#{menuCatalogId},MENU_NAME=#{menuName},MENU_CODE=#{menuCode},MENU_DESC=#{menuDesc},MENU_URL=#{menuUrl},STS=#{sts},OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1,order_no=#{orderNo} where MENU_ID=#{menuId} and  VERSION=#{version}
+	</update>
+
+
+
+	<select id="queryById" resultType="citic.gack.sso.entity.SysMenu"
+		parameterType="citic.gack.sso.entity.SysMenu">
+		select
+		MENU_ID,VERSION,order_no,MENU_CATALOG_ID,MENU_NAME,MENU_CODE,MENU_DESC,MENU_URL,STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator,VERSION from MENU where MENU_ID=#{menuId}
+	</select>
+
+
+</mapper>

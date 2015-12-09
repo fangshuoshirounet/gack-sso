@@ -1,0 +1,78 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+		 <div class="info-form" data-options="region:'center'">
+		 	<fieldset>
+		 		 <legend><fmt:message key="credithc.sys.org.info" bundle="${systemBundle}"></fmt:message></legend>
+		 		 <table class="table-info">
+		 		    <tr><th>
+						<label><fmt:message key="credithc.sys.parent.org" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.parentName}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.org.name" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.name}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.org.type" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.orgTypeName}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.area.name" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.areaName}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.acronym" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.acronym}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.org.addre" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.address}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.zip.code" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.postCode}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sort.position" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.sortPosition}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<tags:showlabel-status columnName="STS" tableName="ORGANIZATION" value="${model.sts}"></tags:showlabel-status>
+						&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.createDate}&nbsp;
+					</td></tr>
+					<tr><th>
+						<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+						${model.operateDate}&nbsp;
+					</td></tr>
+					<tr class="row2"><th> 
+						<label><fmt:message key="credithc.sys.remarks" bundle="${systemBundle}"></fmt:message></label></th><td>
+						<textarea name="remarks" readOnly="readonly" >${model.remarks}</textarea>
+					</td></tr>
+		 		 </table>
+		 	</fieldset>
+		 </div>
+		 <div class="buttons" data-options="region:'south'">
+		 	<input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+         </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+$(function(){
+	$(".info-group input:not([type='radio']):not([type='checkbox'])").css({"width": "180px"});
+	//关闭页面
+	 $("#closeSubmitBtn").click(function(){
+	 	  top.closeDialog();
+	 }); 
+});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

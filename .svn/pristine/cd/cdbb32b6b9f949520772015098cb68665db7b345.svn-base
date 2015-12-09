@@ -1,0 +1,289 @@
+package citic.gack.sso.admin.controller;
+
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import citic.gack.sso.admin.security.SecurityManager;
+import citic.gack.sso.admin.service.AreaService;
+import citic.gack.sso.admin.service.OrganizationService;
+import citic.gack.sso.base.BaseController;
+import citic.gack.sso.base.PageInfo;
+import citic.gack.sso.base.exception.SysException;
+import citic.gack.sso.entity.SysArea;
+import citic.gack.sso.entity.SysUser;
+
+@Controller
+/* @Scope("prototype") */
+@RequestMapping("/public/area")
+public class AreaController extends BaseController<SysArea> {
+	private static final Logger logger = LoggerFactory.getLogger(AreaController.class);
+	private static final String BUSINESS_PATH = "/admin/public/area";
+
+	@Autowired
+	private AreaService areaService;
+	@Autowired
+	private OrganizationService organizationService;
+
+	/**
+	 * 返回首页
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.GET)
+	public ModelAndView index(HttpServletRequest request) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_INDEX));
+		return mv;
+	}
+
+	/**
+	 * 一开始使用@PathVariable("id") String
+	 * id只注入id，但很多业务还需要获取更多参数，所以作为共用方法注入HttpServletRequest 去查看界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	public ModelAndView show(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		SysArea model = new SysArea();
+		model.setAreaId(id);
+		model = areaService.queryBean(model);
+		mv.addObject("model", model);
+		mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_SHOW));
+		return mv;
+	}
+
+	/**
+	 * 去编辑界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}/edit", method = RequestMethod.GET)
+	public ModelAndView edit(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		ModelAndView mv = new ModelAndView();
+		SysArea model = new SysArea();
+		model.setAreaId(id);
+		try {
+			model = areaService.queryBean(model);
+			mv.addObject("model", model);
+			mv.setViewName(getMappingUrl(BUSINESS_PATH, PAGE_EDIT));
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return mv;
+	}
+
+	/**
+	 * 去新增界面
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/new", method = RequestMethod.GET)
+	public String editNew(HttpServletRequest request) {
+		return getMappingUrl(BUSINESS_PATH, PAGE_EDITNEW);
+	}
+
+	/**
+	 * 确定删除操作 如果删除成功返回{message:MESSAGE_DESTROY} 失败{message:异常信息}
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	public @ResponseBody
+	Map<String, Object> destroy(HttpServletRequest request, @PathVariable("id") String id) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		SysUser sysUser = SecurityManager.getSessionUser();
+		String userId = sysUser.getSysUserId();
+		String userName = sysUser.getName();
+
+		List<SysArea> delList = new ArrayList<SysArea>();
+		if (StringUtils.isNotBlank(id)) {
+			String[] uniKey = id.split("-");
+			if (uniKey != null && uniKey.length > 0) {
+				for (String string : uniKey) {
+					String[] ids = string.split(",");
+					SysArea sta = new SysArea();
+					sta.setAreaId(ids[0]);
+					sta.setOperatorId(userId);
+					sta.setOperator(userName);
+					delList.add(sta);
+				}
+			}
+			try {
+				areaService.deleteBatch(delList);
+				appInfo.put("message", MESSAGE_DESTROY);
+			} catch (SysException e) {
+				logger.error("", e);
+				appInfo.put("message", MESSAGE_DESTROY_FAIL);
+			}
+		}
+		return appInfo;
+	}
+
+	/**
+	 * 确定修改操作 如果修改成功返回{message:MESSAGE_UPDATE} 失败{message:异常信息}
+	 * 
+	 * @param request
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	public @ResponseBody
+	Map<String, Object> update(HttpServletRequest request, SysArea model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+
+		try {
+			SysUser sysUser = SecurityManager.getSessionUser();
+			String userId = sysUser.getSysUserId();
+			String userName = sysUser.getName();
+			model.setOperatorId(userId);
+			model.setOperator(userName);
+			int flag = areaService.update(model);
+			if (flag > 0) {
+				appInfo.put("message", MESSAGE_UPDATE);
+			} else {
+				appInfo.put("message", MESSAGE_UPDATE_FAIL);
+			}
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_UPDATE_FAIL);
+			logger.error("", e);
+		}
+
+		return appInfo;
+	}
+
+	/**
+	 * 分页查询返回pageInfo对象 model如果属性很多都从request中获取很麻烦，不如自己驱动模型
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.POST, params = "search=true")
+	public @ResponseBody
+	PageInfo search(HttpServletRequest request, SysArea model) throws SysException {
+		PageInfo pageInfo = getPageInfo(request);
+		try {
+			pageInfo = areaService.queryListByPage(model, pageInfo);
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return pageInfo;
+	}
+
+	/**
+	 * 返回JSON信息 如果增加成功返回{message:MESSAGE_CREATE} 失败{message:异常信息}
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody
+	Map<String, Object> createNew(HttpServletRequest request, SysArea model) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		try {
+			SysUser sysUser = SecurityManager.getSessionUser();
+			String userId = sysUser.getSysUserId();
+			String userName = sysUser.getName();
+			model.setCreator(userName);
+			model.setCreatorId(userId);
+			areaService.insert(model);
+			appInfo.put("message", MESSAGE_CREATE);
+		} catch (SysException e) {
+			appInfo.put("message", MESSAGE_CREATE_FAIL);
+			logger.error("", e);
+		}
+		return appInfo;
+	}
+
+	/**
+	 * 删除之前验证是否存在子节点
+	 * 
+	 * @return
+	 * @throws SysException
+	 */
+	@SuppressWarnings("rawtypes")
+	@RequestMapping(value = "/{id}/validatedelete", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> validatedelete(@PathVariable("id") String id) throws SysException {
+		Map<String, Object> appInfo = new HashMap<String, Object>();
+		SysArea model = new SysArea();
+		try {
+			if (StringUtils.isNotBlank(id)) {
+				String[] uniKey = id.split("-");
+				if (uniKey != null && uniKey.length > 0) {
+					List list = null;
+					for (String string : uniKey) {
+						model.setAreaId(string);
+						list = areaService.queryList(model);
+						if (list != null && list.size() > 0) {
+							model = areaService.queryBean(model);
+							appInfo.put("message", "您选择" + model.getName() + "选项是父节点，不能删除，请先删除该节点下的子节点！");
+							break;
+						}
+						list = organizationService.searchOrgByAreaId(string);
+						if (list != null && list.size() > 0) {
+							model = areaService.queryBean(model);
+							appInfo.put("message", "您选择" + model.getName() + "选项是父节点，不能删除，请先删除该节点下的子节点！");
+							break;
+						}
+
+					}
+				}
+			}
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return appInfo;
+	}
+
+	/**
+	 * 构建系统区域tree
+	 * 
+	 */
+	@RequestMapping(value = "/treejson")
+	public @ResponseBody
+	String treejson(HttpServletRequest request) throws SysException {
+
+		boolean isChild = false;
+		String isChildStr = request.getParameter("isChild");
+		if (isNotBlank(isChildStr)) {
+			isChild = Boolean.valueOf(isChildStr);
+		}
+		String id = request.getParameter("id");
+		String rs = "";
+		try {
+			rs = areaService.treejson(isChild, id);
+		} catch (SysException e) {
+			logger.error("", e);
+		}
+		return rs;
+	}
+
+}

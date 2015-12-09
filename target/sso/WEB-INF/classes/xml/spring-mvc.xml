@@ -19,7 +19,7 @@ http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
 		用于注入，(spring提供的) 默认按类型装配 @Transactional( rollbackFor={Exception.class}) 事务管理 
 		@ResponseBody @Scope("prototype") 设定bean的作用域 -->
 	<context:component-scan
-		base-package="citic.gack.web.sso.controller" />
+		base-package="citic.gack.sso.*.controller" />
 
 
 	<bean id="JSPviewResolver"
@@ -55,7 +55,7 @@ http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
 	<!-- 对模型视图名称的解析，即在模型视图名称添加前后缀 -->
 	<bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver"
-		p:prefix="/" p:suffix=".jsp" />
+		p:prefix="/views/" p:suffix=".jsp" />
 
 
 	<!-- 避免IE执行AJAX时,返回JSON出现下载文件 -->

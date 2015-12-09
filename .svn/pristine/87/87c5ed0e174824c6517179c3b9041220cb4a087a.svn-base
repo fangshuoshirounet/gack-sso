@@ -1,0 +1,48 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+	<div class="ToolTip_Form" id="table_loginInfoAdd"
+	onkeydown="if(event.keyCode==13){loginInfoAdd();}">
+	<form method="post" id="viewForm">
+	  <input name="_method" value="put" type="hidden"/>
+				<ul>
+						<li title="${model.sysUserSettingId}">
+							<label><fmt:message key="credithc.sys.user.setting.id" bundle="${systemBundle}"></fmt:message></label>
+							${model.sysUserSettingId}
+						</td></tr>
+						<li  title="${model.sysUserId}">
+							<label><fmt:message key="credithc.sys.user.id" bundle="${systemBundle}"></fmt:message></label>
+							${model.sysUserId}
+						</td></tr>
+						<li  title="${model.setting}">
+							<label><fmt:message key="credithc.sys.user.setting.info" bundle="${systemBundle}"></fmt:message></label>
+							${model.setting}
+						</td></tr>
+						<tr><th>
+							<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label>
+							${model.sts}
+						</td></tr>
+						<tr><th>
+							<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label>
+							${model.operateDate}
+						</td></tr>
+						<tr><th>
+							<label><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label>
+							${model.createDate}
+						</td></tr>
+					<tr><th>
+						<a href="#" class="easyui-linkbutton" id="closeSubmitBtn"icon="icon-ok"><fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message></a>
+					</td></tr>
+				</table>
+			</form>
+	    </div>
+<script type="text/javascript">
+	$(function() {
+		//关闭页面
+		$("#closeSubmitBtn").click(function() {
+			 top.closeDialog();
+		});
+	});
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

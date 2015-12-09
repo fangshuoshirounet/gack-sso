@@ -1,0 +1,66 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+	   <div class="info-form" data-options="region:'center'">
+	      <fieldset>
+            <legend><fmt:message key="credithc.sys.widget.info" bundle="${systemBundle}"></fmt:message></legend>
+			<table class="table-info">
+               <tr><th>
+					<label><fmt:message key="credithc.sys.widget.title" bundle="${systemBundle}"></fmt:message></label></th><td>
+					${model.widgetTitle}
+				</td></tr>
+				<tr><th>
+					<label><fmt:message key="credithc.sys.widget.rel.location" bundle="${systemBundle}"></fmt:message></label></th><td>
+					${model.relLocation}
+				</td></tr>
+				<tr><th>
+					<label><fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message></label></th><td>
+					<tags:showlabel-status tableName="WIDGET" columnName="STS" value="${model.sts}"></tags:showlabel-status>
+				</td></tr>
+				<tr><th>
+					<label><fmt:message key="credithc.sys.sts.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+					${model.operateDate}
+				</td></tr>
+				<tr><th>
+					<label><fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message></label></th><td>
+					${model.createDate}
+				</td></tr>
+				<tr class="row2"><th>
+					<label  ><fmt:message key="credithc.sys.widget.desc" bundle="${systemBundle}"></fmt:message></label></th><td>
+					<textarea   name="remarks" readonly>${model.widgetDesc}</textarea>
+				</td></tr>
+			</table>
+		</fieldset>
+	  </div>
+	  <div class="buttons" data-options="region:'south'">
+		 	<input type="button" class="button" id="closeSubmitBtn" value="<fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message>"/>
+      </div>
+	</form>
+</div>
+<script type="text/javascript">
+//<![CDATA
+	var win;
+	$(function() {
+		//关闭页面
+		$("#closeSubmitBtn").click(function() {
+			 top.closeDialog();
+		});
+	});
+	//查询附件	
+	function downloadFile(id){
+		url="${ctx}/public/widget/"+id+"/queryFile?radom="+Math.random();
+		top.showPic(url);
+		//window.open(url,'_blank');
+	}
+	function removeFile(){
+	   	var oldFile = $('#oldFile');
+	   	var newFile = $('#newFile');
+	    oldFile.hide();
+	    newFile.show();
+	}
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

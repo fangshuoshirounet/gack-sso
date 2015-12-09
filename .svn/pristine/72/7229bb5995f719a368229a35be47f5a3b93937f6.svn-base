@@ -1,0 +1,91 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+	<div class="easyui-layout" data-options="fit:true"> 
+       <div id="top" data-options="region:'north'" class="nav">
+			<table class="nav-table">
+			<tr>
+				  <td class="guide-first-selected"></td>
+				  <td class="guide-selected-step" id="step1" title="<fmt:message key="credithc.sys.rolepermission.step.title" bundle="${systemBundle}"></fmt:message>">1<fmt:message key="credithc.sys.rolepermission.role" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-selected-unselected"></td>
+			      <td class="guide-unselected-step" id="step2" title="<fmt:message key="credithc.sys.rolepermission.step.title" bundle="${systemBundle}"></fmt:message>">2<fmt:message key="credithc.sys.rolepermission.permission" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step3" title="<fmt:message key="credithc.sys.rolepermission.step.title" bundle="${systemBundle}"></fmt:message>">3<fmt:message key="credithc.sys.rolepermission.catalog" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step4" title="<fmt:message key="credithc.sys.rolepermission.step.title" bundle="${systemBundle}"></fmt:message>">4<fmt:message key="credithc.sys.rolepermission.view" bundle="${systemBundle}"></fmt:message></td>
+			      <td class="guide-unselected-step"></td>
+			  </tr> 
+            </table>
+	   </div> 
+	   <input type="hidden" name="menuCatalogId" id="menuCatalogId"/>
+	   <input type="hidden" name="menuCatalogId" id="menuCatalogId"/>
+	   <input type="hidden" name="menuCatalogId" id="menuCatalogId"/>
+	  <!-- 中间:显示列表-->
+	  <div id="flexgrid" data-options="region:'center'" class="content">
+	        <table id="flexTable"></table>
+	  </div>
+	  <!-- 底部:操作按钮-->
+	  <div class="buttons" data-options="region:'south'">${type}
+	        <input type="button" class="button" id="nextBtn" value="<fmt:message key='credithc.sys.button.next' bundle='${systemBundle}'></fmt:message>"/>
+	  </div>
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+    var selectRoleId = '${model.roleId}';
+    $(function () {
+	$("#flexTable").flexigrid({
+		url:"${ctx}/security/rolepermission/queryRoleList",
+		autoload : true,
+		height : flexgirdHeight-30, 
+		title:"<fmt:message key='credithc.sys.role.list' bundle='${systemBundle}'></fmt:message>",
+		//usepager: false,
+		hiddenArea :[{
+			name :'roleId'
+		}],
+		colModel: [
+			  //  {display: '角色Id', name: 'roleId', sortable: true, align: 'center', hide: true, toggle: false},
+				{display: '<fmt:message key="credithc.sys.operation.name" bundle="${systemBundle}"></fmt:message>', name: 'roleName', width: 180, sortable: true, align: 'center', hide: false, toggle: false},
+				{display: '<fmt:message key="credithc.sys.operation.code" bundle="${systemBundle}"></fmt:message>', name: 'roleCode', width: 175, sortable: true, align: 'center'},
+				{display: '<fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message>', name: 'stsName', width: 170, sortable: false, align: 'center'},
+				{display: '<fmt:message key="credithc.sys.create.date" bundle="${systemBundle}"></fmt:message>', name: 'operateDate', width: 170, sortable: true, align: 'center'}
+				],
+		onSuccess:function(){
+			if(selectRoleId!=null&&selectRoleId.length>0){
+				$("#flexTable tr ").each(function (n, tr) {
+		   	 		   var roleId = $(tr).find("input[name='roleId']").val();
+	                   if(selectRoleId==roleId){
+	                	   var input = $($(tr).children().eq(0));
+	                	   var checkbox = input.find("input[type='checkbox']");
+	                       $(checkbox).attr("checked", "checked");
+	                       if (n % 2 == 0) {
+	                           $(tr).attr("class", "erow trSelected");
+	                       } else {
+	                           $(tr).attr("class", "trSelected");
+	                       }
+	                   }
+	               });
+			}
+		}
+	});
+    });
+	$("#nextBtn").click(function() {
+		if(validateSelected()){
+			var key = getSelectRowByName("roleId");
+			var validateurl = "${ctx}/security/rolepermission/validateadmin?id="+key;
+			$.getJSON(validateurl, function (data) {
+				 if (data.message != null) {//返回异常信息
+					 $.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>', data.message, '<fmt:message key="credithc.sys.prompt.info" bundle="${systemBundle}"></fmt:message>');
+				 }else{
+					 var url='${ctx}/security/rolepermission/permission?roleId=' + key+"&permissionType=menu" ;
+					 window.location.href=url;
+				 }
+			});
+		}
+	});
+	$("#step2").click(function(){
+		$("#nextBtn").click();
+	});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

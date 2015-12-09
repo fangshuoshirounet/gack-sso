@@ -1,0 +1,299 @@
+package citic.gack.sso.admin.controller;
+
+import static citic.gack.sso.admin.security.SecurityAuthcFilter.CAPTCHA_SESSION;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import citic.gack.sso.admin.dto.ShortcutMenuDTO;
+import citic.gack.sso.admin.dto.SysUserDTO;
+import citic.gack.sso.admin.security.SecurityManager;
+import citic.gack.sso.admin.service.ShortcutMenuService;
+import citic.gack.sso.admin.service.SysConfigService;
+import citic.gack.sso.admin.service.SysUserService;
+import citic.gack.sso.base.cache.CacheManager;
+import citic.gack.sso.base.exception.SysException;
+import citic.gack.sso.entity.SysMenu;
+import citic.gack.sso.entity.SysMenuCatalog;
+import citic.gack.sso.utils.Constants;
+import citic.gack.sso.utils.ConstantsUtils;
+import citic.gack.sso.utils.VerifyCode;
+import net.sf.json.JSONArray;
+
+@Controller
+public class MainController {
+
+	private static Logger logger = LoggerFactory.getLogger(MainController.class);
+	private static String theme = "default";
+	private static TAB_POSITION tabPosition = TAB_POSITION.TOP;
+
+	private static final String THEME_TAB_POSITION = "APPLICATION.THEME.TAB_POSITION";
+	protected static final String SYS_THEME = Constants.valueOf("APPLICATION.THEME");// 主题
+
+	// 页面布局
+	private String pageSettingXML;
+
+	public String getPageSettingXML() {
+		return pageSettingXML;
+	}
+
+	public void setPageSettingXML(String pageSettingXML) {
+		this.pageSettingXML = pageSettingXML;
+	}
+
+	@Autowired
+	private ShortcutMenuService shortcutMenuService;
+	@Autowired
+	private SysUserService sysUserService;
+	@Autowired
+	private SysConfigService sysConfigService;
+
+	public String index(HttpServletRequest request, HttpSession session) throws Exception {
+		return login(request);
+	}
+
+	private static final String placeholderUsername = "账号";
+	private static final String placeholderPassword = "密码";
+	private static final String placeholderCaptcha = "验证码";
+
+	/**
+	 * DESC:去登陆页面的方法，和真正登陆的逻辑应该分开，因为shiro的登陆页面的连接，和去登陆的连接应该彻底分开
+	 * <ul>
+	 * TAGES:
+	 * <li>@return
+	 * <li>@throws Exception</li>
+	 * </ul>
+	 * 
+	 * @author wangjincheng@cattsoft.com
+	 * @date 2014年9月1日 @time 下午4:48:41
+	 */
+	@RequestMapping("/admin/login")
+	public String login(HttpServletRequest request) throws Exception {
+		HttpSession session = request.getSession(true);
+		setSession(request, session);
+		return "/admin/themes/" + theme + "/login";
+	}
+
+	@RequestMapping("/admin/doLogin")
+	public String doLogin(HttpServletRequest request, HttpSession session) throws Exception {
+		setSession(request, session);
+		if (SecurityManager.getSessionUser() != null) {
+			return home(request, session);
+		}
+		request.setAttribute("placeholderUsername", placeholderUsername);
+		request.setAttribute("placeholderPassword", placeholderPassword);
+		request.setAttribute("placeholderCaptcha", placeholderCaptcha);
+		return "/admin/themes/" + theme + "/login";
+	}
+
+	@RequestMapping("/admin/home")
+	public String home(HttpServletRequest request, HttpSession session) throws Exception {
+		setSession(request, session);
+		SysUserDTO syuser = SecurityManager.getSessionUser();
+		List<SysMenuCatalog> catalogs = syuser.getMenuCatalog();
+		for (SysMenuCatalog catalog : catalogs) {
+			catalog.setSts(catalog.getCatalogName());
+		}
+		String catalog = JSONArray.fromObject(catalogs).toString();
+		List<SysMenu> menus = syuser.getMenu();
+		for (SysMenu menu : menus) {
+			menu.setSts(menu.getMenuName());
+		}
+
+		String menu = JSONArray.fromObject(menus).toString();
+		ShortcutMenuDTO menuDTO = new ShortcutMenuDTO();
+		menuDTO.setSysUserId(syuser.getSysUserId());
+		List<ShortcutMenuDTO> shortcutMenuDTOs = shortcutMenuService.queryList(menuDTO);
+		for (SysMenu item : menus) {
+			if (!shortcutMenuDTOs.contains(item)) {
+				shortcutMenuDTOs.remove(item);
+			}
+		}
+		for (ShortcutMenuDTO item : shortcutMenuDTOs) {
+			item.setSts(item.getMenuName());
+		}
+
+		CacheManager cacheManager = CacheManager.getInstance();
+		String inactiveFlag = (String) cacheManager.get(ConstantsUtils.CACHE_SYSTEM + ".table.cache.idvalue.sysconfig", "INACTIVEL_FLAG");
+		if (StringUtils.isNotBlank(inactiveFlag) && inactiveFlag.equals("Y")) {
+			String valuse = (String) cacheManager.get(ConstantsUtils.CACHE_SYSTEM + ".table.cache.idvalue.sysconfig", "900001");
+			if (StringUtils.isNotBlank(valuse)) {
+				int configDays = Integer.valueOf(valuse);
+				int inactiveDays = Integer.valueOf(SecurityManager.getSessionAttribute("inactiveDays").toString());
+				if (configDays >= 0 && inactiveDays <= configDays) {
+					request.setAttribute("inactiveDaysMsg", "您的密码还有" + inactiveDays + "天过期，请及时修改！");
+				}
+			}
+		}
+		request.setAttribute("orgName", syuser.getOrgName());
+		request.setAttribute("catalog", catalog);
+		request.setAttribute("menu", menu);
+		request.setAttribute("shortcutMenuDTOs", shortcutMenuDTOs);
+		return "/admin/themes/" + theme + "/home";
+	}
+
+	private void setSession(HttpServletRequest request, HttpSession session) {
+		if (session.getAttribute("THEME") == null) {
+			session.setAttribute("THEME", theme);
+		}
+
+		if (session.getAttribute("tab-position") == null) {
+			session.setAttribute("tab-position", tabPosition.toString());
+		}
+	}
+
+	@RequestMapping("/admin/logout")
+	public void logout(HttpSession session, HttpServletRequest request,HttpServletResponse response) throws Exception {
+		try{
+			SecurityManager.logout();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		response.sendRedirect(request.getContextPath() + "/doLogin");
+	}
+
+	@RequestMapping("/admin/verifycode")
+	public void verifycode(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
+		String verifyCode = VerifyCode.getVerifyCode(4, "mix");
+		BufferedImage img = VerifyCode.getImage(verifyCode, 118, 39);
+
+		session.setAttribute(CAPTCHA_SESSION, verifyCode);
+		// 禁止图像缓存。
+		response.setHeader("Pragma", "no-cache");
+		response.setHeader("Cache-Control", "no-cache");
+		response.setDateHeader("Expires", 0);
+		response.setContentType("image/jpeg");
+
+		// 将图像输出到Servlet输出流中。
+		ServletOutputStream sos = response.getOutputStream();
+		ImageIO.write(img, "jpeg", sos);
+		sos.close();
+	}
+
+	public String getTheme() {
+		return theme;
+	}
+
+	public String getTabPosition() {
+		return tabPosition.toString();
+	}
+
+	@RequestMapping("/admin/validatepwd")
+	public String validatepwd(HttpServletRequest request, HttpServletResponse response) throws SysException {
+		response.setContentType("text/plain;charset=UTF-8");
+		String result = "false";
+
+		String pwd = request.getParameter("pwd");
+		String userId = SecurityManager.getSessionUser().getSysUserId();
+
+		SysUserDTO su = new SysUserDTO();
+		su.setSysUserId(userId);
+		try {
+			su = sysUserService.queryBean(su);
+			if (su.getPassword().equals(pwd)) {
+				result = "true";
+			}
+			PrintWriter writer = response.getWriter();
+			writer.write(result);
+			writer.close();
+		} catch (IOException e) {
+			logger.error("", e);
+			result = "false";
+		} catch (SysException e) {
+			logger.error("", e);
+			result = "false";
+		}
+		return null;
+	}
+
+	@RequestMapping("/admin/saveuserpwd")
+	public String saveuserpwd(HttpServletRequest request, HttpServletResponse response) throws SysException {
+		String errorMsg = "";
+		boolean isTag = true;
+		try {
+			String userId = SecurityManager.getSessionUser().getSysUserId();
+			String oldpwd = request.getParameter("oldpwd");
+			String newpwd = request.getParameter("newpwd");
+			String renewpwd = request.getParameter("renewpwd");
+			if (!newpwd.equals(renewpwd)) {
+				errorMsg = "您两次输入的密码不相同！";
+				isTag = false;
+			}
+			SysUserDTO su = null;
+			if (isTag) {
+				su = new SysUserDTO();
+				su.setSysUserId(userId);
+				su = sysUserService.queryBean(su);
+				if (!su.getPassword().equals(oldpwd)) {
+					errorMsg = "您输入的旧密码和原密码不相同！";
+					isTag = false;
+				}
+				if (su.getPassword().equals(newpwd)) {
+					errorMsg = "您输入的新密码和原密码不能相同！";
+					isTag = false;
+				}
+			}
+			if (isTag) {
+				su.setPassword(newpwd);
+				sysUserService.pwdreset(su);
+			}
+			response.setContentType("text/plain;charset=UTF-8");
+			PrintWriter writer = response.getWriter();
+			writer.write(errorMsg);
+			writer.close();
+		} catch (IOException e) {
+			logger.error("", e);
+			errorMsg = "系统异常！";
+			isTag = false;
+		} catch (SysException e) {
+			logger.error("", e);
+			errorMsg = "系统异常！";
+			isTag = false;
+		}
+
+		return null;
+	}
+
+	public enum TAB_POSITION {
+		TOP {
+			@Override
+			public String toString() {
+				return "top";
+			}
+		},
+		BOTTOM {
+			@Override
+			public String toString() {
+				return "bottom";
+			}
+		},
+		LEFT {
+			@Override
+			public String toString() {
+				return "left";
+			}
+		},
+		RIGHT {
+			@Override
+			public String toString() {
+				return "right";
+			}
+		}
+	}
+
+}

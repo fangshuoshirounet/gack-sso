@@ -1,0 +1,166 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+<!-- 菜单左侧树 -->
+<div class="tree" data-options="region:'west',split:true">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'center'" title="<fmt:message key='credithc.sys.menu.catalog' bundle='${systemBundle}'></fmt:message>" fit="true" class="tree-center" >
+				<ul id="menuCatalogTree"></table>
+			</div>
+			<div data-options="region:'south'" class="tree-buttons">
+             
+            </div>
+		</div>
+	</div>
+	<!-- 中间区域 -->
+	<div  class="no-border" data-options="region:'center'">
+		<div class="easyui-layout" data-options="fit:true">
+			<!-- 查询项 -->
+			<div data-options="region:'north'" class="search">
+				<fieldset>
+					<legend><fmt:message key="credithc.sys.menu.manager" bundle="${systemBundle}"></fmt:message></legend>
+					<form id="serachForm">
+						<input type="hidden" name="menuCatalogId" id="menuCatalogId" />
+						<table class="search-table">
+							<tr>
+								<th><fmt:message key="credithc.sys.menu.name" bundle="${systemBundle}"></fmt:message></th>
+								<td><input type="text" name="menuName" maxlength="20" /></td>
+								<th><fmt:message key="credithc.sys.menu.code" bundle="${systemBundle}"></fmt:message></th>
+								<td><input type="text" name="menuCode" maxlength="40" /></td>
+								<td class="search-buttons">
+								  <shiro:hasPermission name="security:menu:query">
+								     <input type="button" class="button" id="qryBtn" value="<fmt:message key='credithc.sys.button.query' bundle='${systemBundle}'></fmt:message>" />
+								     <input type="button" class="button" id="clearBtn" value="<fmt:message key='credithc.sys.button.remove' bundle='${systemBundle}'></fmt:message>" />
+								  </shiro:hasPermission>   
+								</td>
+							</tr>
+						</table>
+					</form>
+				</fieldset>
+			</div>
+			<!-- 显示列表-->
+			<div id="flexgrid" data-options="region:'center'" class="content">
+				<table id="flexTable"></table>
+			</div>
+			<div data-options="region:'south'" class="buttons">
+				<shiro:hasPermission name="security:menu:view">
+                	<input type="button" class="button" id="showBtn" value="<fmt:message key='credithc.sys.button.view' bundle='${systemBundle}'></fmt:message>"/>
+                </shiro:hasPermission>
+                <shiro:hasPermission name="security:menu:add">
+                	<input type="button" class="button" id="addBtn" value="<fmt:message key='credithc.sys.button.add' bundle='${systemBundle}'></fmt:message>"/>
+                </shiro:hasPermission>
+                <shiro:hasPermission name="security:menu:edit">
+                	<input type="button" class="button" id="editBtn" value="<fmt:message key='credithc.sys.button.edit' bundle='${systemBundle}'></fmt:message>"/>
+                </shiro:hasPermission>
+                <shiro:hasPermission name="security:menu:delete">
+                	<input type="button" class="button" id="delBtn" value="<fmt:message key='credithc.sys.button.cancellation' bundle='${systemBundle}'></fmt:message>"/>
+                </shiro:hasPermission>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+<%-- 菜单目录树新增--%>
+$("#insert").bind("click", function () {
+	var url = '${ctx}/security/menu/new';
+	top.openDialog({href : url,	resizable : true,height : 358,width : 400,title : "<fmt:message key='credithc.sys.menu.add' bundle='${systemBundle}'></fmt:message>",modal : true
+	});
+});
+	function initTree() {
+		$('#menuCatalogTree').tree({
+			url : "${ctx}/security/menu/treejson",
+			onClick : function(node) {
+				$("#menuCatalogId").val(node.id);
+				$("#flexTable").flexReload();
+			}
+		});
+	}
+	$(function() {
+		initTree();
+		<%-- 右侧主面板区域 --%>
+		$("#flexTable").flexigrid({
+			title:"<fmt:message key='credithc.sys.menu.list' bundle='${systemBundle}'></fmt:message>",
+			url : '${ctx}/security/menu?search=true',
+			hiddenArea:[{name:"menuId"}],
+				colModel : [ 
+				 {display : '<fmt:message key="credithc.sys.menu.name" bundle="${systemBundle}"></fmt:message>',name : 'menuName',sortable : true,width : 130,align : 'center'}, 
+				 {display : '<fmt:message key="credithc.sys.menu.code" bundle="${systemBundle}"></fmt:message>',name : 'menuCode',sortable : true,width : 125,align : 'center'}, 
+				 {display : '<fmt:message key="credithc.sys.sts" bundle="${systemBundle}"></fmt:message>',name : 'stsName',hide : false,sortable : false,width : 120,align : 'center'},
+				 {
+						display: '<fmt:message key="credithc.sys.operation" bundle="${systemBundle}"></fmt:message>',
+						name: 'operate',
+						width: 120,
+						align: 'center',
+						operateColumn: [
+							            {html: '<shiro:hasPermission name="security:menu:view"><a  name="showLink" href="#"><fmt:message key="credithc.sys.view" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'},
+										{html: '<shiro:hasPermission name="security:menu:edit"><a name="editLink" href="#"><fmt:message key="credithc.sys.edit" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'},
+										{html: '<shiro:hasPermission name="security:menu:delete"><a name="delLink" href="#"><fmt:message key="credithc.sys.cancellation" bundle="${systemBundle}"></fmt:message></a></shiro:hasPermission>'}
+									   ]
+					}
+		]});
+	});
+		//查询
+		$("#qryBtn").live('click', function() {
+			$("#flexTable").flexRefresh();
+		});
+		//重置
+		$("#clearBtn").live('click', function() {
+			var  menuCatalogId = $("#menuCatalogId").val();
+			$("#serachForm")[0].reset();
+			$("#menuCatalogId").val(menuCatalogId);
+		});
+	//刷新flexgird 数据
+	function refresh() {
+		$("#flexTable").flexReload();
+	}
+	//新增
+	$("#addBtn").click(function() {
+		var url = '${ctx}/security/menu/new';
+		top.openDialog({href : url,resizable : false,height : 358,width : 380,title : "<fmt:message key='credithc.sys.menu.add' bundle='${systemBundle}'></fmt:message>",modal : true
+		});
+	});
+	//修改
+	 $("#editBtn,[name='editLink']").live("click",function () {
+			  if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证只能选中单行，如查看，修改
+			var key= getSelected({nameGroup:'menuId',currentObj:$(this)});
+		var url = '${ctx}/security/menu/' + key + '/edit';
+		top.openDialog({href : url,resizable : false,height : 358,width : 380,title : "<fmt:message key='credithc.sys.menu.edit' bundle='${systemBundle}'></fmt:message>",modal : true
+		});
+		}
+	});
+	//查看
+	$("#showBtn,[name='showLink']").live("click",function (event,data) {
+		 if (isSelected({isMultiSelect:false,currentObj:$(this)})) {//验证只能选中单行，如查看，修改
+		var key=getSelected({nameGroup:'menuId',currentObj:$(this)});
+		var url = '${ctx}/security/menu/' + key;
+		top.openDialog({href : url,resizable : false,height : 374,width : 380,title : "<fmt:message key='credithc.sys.menu.view' bundle='${systemBundle}'></fmt:message>",modal : true
+			});
+		}
+	});
+	//删除
+	 $("#delBtn,[name='delLink']").live("click",function (event,data) {
+	    	var keys=getSelected({nameGroup:'menuId',currentObj:$(this)});
+	    	if (isSelected({isMultiSelect:true,currentObj:$(this)})) {//验证只能选中单行，如查看，修改
+			$.messager.confirm('<fmt:message key="credithc.sys.delete.prompt" bundle="${systemBundle}"></fmt:message>', '<fmt:message key="credithc.sys.delete.prompt.info" bundle="${systemBundle}"></fmt:message>', function(r) {
+					if (r) {
+						var url = "${ctx}/security/menu/" + keys
+								+ "?_method=DELETE";
+						$.ajax({async : false,cache : false,type : 'POST',dataType : "json",url : url,//请求的action路径
+							success : function(data) {
+								if (data != null) {//返回异常信息
+									$.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>', data.message,
+											'<fmt:message key="credithc.sys.prompt.info" bundle="${systemBundle}"></fmt:message>');
+								}
+							}
+						});
+						$("#flexTable").flexReload();
+						initTree();
+					}
+				});
+				}
+			});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

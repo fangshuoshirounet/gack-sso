@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.ApplyPermissionMapper">
+	<insert id="save" parameterType="citic.gack.sso.entity.SysApplyPermission">
+		insert into SYS_APPLY_PERMISSION
+		(ID,APPLY_ROLE_ID,PERMISSION_ID,operator_id,creator_id, ROLE_ID, MENU_CATALOG_ID, MENU_ID,
+		STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR)
+		values (#{id} ,#{applyRoleId} ,#{permissionId} ,#{creatorId},#{creatorId},#{roleId}
+		,#{menuCatalogId ,jdbcType=VARCHAR} ,#{menuId ,jdbcType=VARCHAR} ,#{sts}
+		,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator})
+
+	</insert>
+   
+   
+   
+   	<select id="queryApplyRoleMenuPermission" parameterType="java.lang.String"
+		resultType="citic.gack.sso.entity.SysPermission">
+		select PERMISSION_ID,  ROLE_ID, MENU_CATALOG_ID, MENU_ID 
+		 from SYS_APPLY_PERMISSION  
+		WHERE APPLY_ROLE_ID=#{applyRoleId} 
+	</select>
+   
+</mapper>

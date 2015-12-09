@@ -1,0 +1,83 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<script src="${ctx}/resources/themes/${THEME}/js/func.md5.js" type="text/javascript"></script>
+<style>
+<!--
+.info-form ul li label {display: inline-block;width: 103px; text-align: left;padding-left: 12px;}
+-->
+</style>
+<div class="easyui-layout" data-options="fit:true">
+ 	<div class="info-form" data-options="region:'center'">
+	<form method="post" id="editForm">
+		 	<fieldset>
+		 	 	<legend><fmt:message key="credithc.sys.user.info" bundle="${systemBundle}"></fmt:message></legend>
+		 		 <table class="table-info">
+					<tr><th>
+						<label class="required"><fmt:message key="credithc.sys.user.old.password" bundle="${systemBundle}"></fmt:message></label>
+						<input class="easyui-validatebox" id="pwd" validType="checkUserPwd['#pwd1','${ctx}']"  invalidMessage="<fmt:message key='credithc.sys.user.old.password.info' bundle='${systemBundle}'></fmt:message>" type="password" maxlength="32" name="oldpwd" required="required" />
+					</td></tr>
+					<tr><th>
+						<label class="required"><fmt:message key="credithc.sys.user.new.password" bundle="${systemBundle}"></fmt:message></label>
+						<input class="easyui-validatebox" id="pwd1"  type="password" maxlength="32" name="newpwd" required="required"/>
+					</td></tr>
+					<li class="no-bottom-border">
+						<label class="required"><fmt:message key="credithc.sys.user.repeat.password" bundle="${systemBundle}"></fmt:message></label>
+						<input class="easyui-validatebox" id="pwd2" validType="equalTo['#pwd1']" invalidMessage="<fmt:message key='credithc.sys.user.new.password.info' bundle='${systemBundle}'></fmt:message>"  type="password" maxlength="32" name="renewpwd" required="required" />
+					</td></tr>
+		 		 </table>
+		 	</fieldset>
+	</form>
+	 </div>
+	<div class="buttons" data-options="region:'south'">
+	    <button class="button" id="btnSubmit"><fmt:message key='credithc.sys.button.submit' bundle='${systemBundle}'></fmt:message></button>
+		<button class="button" id="btnCancel"><fmt:message key='credithc.sys.button.cancel' bundle='${systemBundle}'></fmt:message></button>
+	</div>
+</div> 
+<script type="text/javascript">
+//<![CDATA[
+$(function(){
+	 //验证
+	 $(".info-group input:not([type='radio']):not([type='checkbox'])").css({"width": "180px"});
+	 $('#editForm').ajaxForm({
+	    url:"${ctx}/saveuserpwd", 
+	    beforeSubmit:function(formData, jqForm){
+	    	var tag = jqForm.form('validate');
+    		if(tag){
+    			for(var i =0;i<formData.length;i++){
+    				if(formData[i].name=='oldpwd'){
+    					formData[i].value=new $.Md5().hex_md5($("#pwd").val());
+    				}
+    				if(formData[i].name=='newpwd'){
+    					formData[i].value=new $.Md5().hex_md5($("#pwd1").val());
+    				}
+    				if(formData[i].name=='renewpwd'){
+    					formData[i].value=new $.Md5().hex_md5($("#pwd2").val());
+    				}
+    			}
+    		}
+    		return tag;
+        },
+		success:function(data){
+			  if(data!=null&&data.length>0){
+				  $.messager.alert('<fmt:message key="credithc.sys.prompt" bundle="${systemBundle}"></fmt:message>', data, '<fmt:message key="credithc.sys.prompt.info" bundle="${systemBundle}"></fmt:message>');
+			  }
+			  else{
+		 	  	  top.closeDialog();
+				  $.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg :"<fmt:message key='credithc.sys.password.success' bundle='${systemBundle}'></fmt:message>" ,timeout : 1000,showType : 'slide'});
+			  }
+			  
+		}
+	 });
+});
+//表单提交
+$("#btnSubmit").click(function(){
+	$("#editForm").submit();
+});
+//关闭页面
+$("#btnCancel").click(function(){
+	  top.closeDialog();
+}); 
+//]]>    
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

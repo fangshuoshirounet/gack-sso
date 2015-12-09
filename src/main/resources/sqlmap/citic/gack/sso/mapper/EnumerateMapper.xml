@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.EnumerateMapper">
+
+	
+	<select id="queryListByPage" resultType="citic.gack.sso.entity.SysEnumerate" parameterType="citic.gack.sso.entity.SysEnumerate">
+		select s.version,S.TABLE_NAME,s.operator_id,s.creator_id, S.COLUMN_NAME, S.STS_ID, S.STS_WORDS, S.ORDER_ID,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator
+		from SYS_Enumerate S
+		where 1=1
+		<if test="condition.tableName !=null and condition.tableName != ''">
+			and  S.TABLE_NAME like CONCAT(CONCAT('%', #{condition.tableName}),'%')
+		</if>
+		<if test="condition.columnName !=null and condition.columnName != ''">
+			and  S.COLUMN_NAME like CONCAT(CONCAT('%', #{condition.columnName}),'%')
+		</if>
+		<if test="condition.orderId !=null and condition.orderId != ''">
+			and  S.ORDER_ID like CONCAT(CONCAT('%', #{condition.orderId}),'%')
+		</if>
+		<if test="condition.stsId !=null and condition.stsId != ''">
+			and  S.STS_ID like CONCAT(CONCAT('%', #{condition.stsId}),'%')
+		</if>
+		<if test="condition.stsWords !=null and condition.stsWords != ''">
+			and  S.STS_WORDS like CONCAT(CONCAT('%', #{condition.stsWords}),'%')
+		</if>
+		<if test="page.sortName!=null">
+			order by ${page.sortName}
+		</if>
+		<if test="page.sortOrder!=null">
+			${page.sortOrder}
+		</if>
+	</select>
+
+	<insert id="save" parameterType="citic.gack.sso.entity.SysEnumerate">
+			insert into SYS_Enumerate(
+				TABLE_NAME,
+				COLUMN_NAME,
+				STS_WORDS,
+				STS_ID,
+				ORDER_ID,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR,STS,operator_id,creator_id
+			)
+			values
+			(
+				#{tableName,jdbcType=VARCHAR},
+				#{columnName,jdbcType=VARCHAR},
+				#{stsWords,jdbcType=VARCHAR},
+				#{stsId,jdbcType=VARCHAR}, 
+				#{orderId,jdbcType=VARCHAR},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},#{sts},#{creatorId},#{creatorId}
+			)
+	</insert>
+
+	<select id="queryList" resultType="citic.gack.sso.entity.SysEnumerate" parameterType="citic.gack.sso.entity.SysEnumerate">
+			select * from SYS_Enumerate
+	</select>
+
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysEnumerate">
+		update SYS_Enumerate set
+			TABLE_NAME=#{tableName},
+			COLUMN_NAME=#{columnName},
+			STS_WORDS=#{stsWords},
+			STS_ID=#{stsId},operator_id=#{operatorId},
+			ORDER_ID=#{orderId},OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+		where
+			TABLE_NAME=#{tableName}
+			and COLUMN_NAME=#{columnName}
+			and STS_ID=#{stsId} and  VERSION=#{version}
+	</update>
+
+
+	<delete id="deleteById" parameterType="citic.gack.sso.entity.SysEnumerate">
+		delete SYS_Enumerate where TABLE_NAME=#{tableName} and COLUMN_NAME=#{columnName} and STS_ID=#{stsId} and  VERSION=#{version}
+	</delete>
+
+	<select id="queryById" parameterType="citic.gack.sso.entity.SysEnumerate" resultType="citic.gack.sso.entity.SysEnumerate">
+		select TABLE_NAME,operator_id,creator_id,VERSION,COLUMN_NAME,STS_ID,STS_WORDS,ORDER_ID,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_Enumerate where TABLE_NAME=#{tableName} and COLUMN_NAME=#{columnName} and STS_ID=#{stsId}
+	</select>
+	 
+</mapper>

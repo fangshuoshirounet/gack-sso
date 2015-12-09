@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.ApplyOperatePermissionChangeMapper">
+
+	<insert id="save" parameterType="citic.gack.sso.admin.dto.RolePermissionDTO">
+
+		insert into
+		APPLY_OPERATE_PERMISSION_change
+		(APPLY_ROLE_ID,MENU_ID,MENU_NAME,permission_Html)
+		values
+		(#{applyRoleId},#{menuId},#{menuName},#{permissionHtml})
+
+	</insert>
+	<select id="queryApplyRoleOperatePermission" parameterType="java.lang.String"
+		resultType="citic.gack.sso.admin.dto.RolePermissionDTO">
+		select APPLY_ROLE_ID,MENU_ID,MENU_NAME,permission_Html
+		from APPLY_OPERATE_PERMISSION_change
+		WHERE APPLY_ROLE_ID=#{applyRoleId}
+	</select>
+
+</mapper>

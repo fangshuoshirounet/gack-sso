@@ -1,0 +1,214 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<script type="text/javascript">
+//<![CDATA[
+var catalog = ${catalog};
+var roleMenuCatalogJson = ${roleMenuCatalogJson};
+
+var nodeList = [];
+for(var i=0;i<catalog.length;i++){
+	for(var j=0;j<roleMenuCatalogJson.length;j++){
+		if(catalog[i].menuCatalogId == roleMenuCatalogJson[j].menuCatalogId){
+			catalog[i].checked=true;
+			break;
+		}
+	}
+	catalog[i].id = catalog[i].menuCatalogId;
+	catalog[i].pid = catalog[i].parentCatalogId;
+	catalog[i].text = catalog[i].catalogName;
+	catalog[i].flag = 'c';
+	nodeList.push(catalog[i]);
+}
+
+//得到子节点列表
+function getChildList(id){
+	var child = [];
+	for(var i=0;i<nodeList.length;i++){
+		if(nodeList[i].pid == id){
+			child.push(nodeList[i]);
+		}
+	}
+	return child;
+}
+//判断是否有子节点
+function hasChild(node) {
+	return node.flag == 'c'? true : false;
+}
+//递归
+function recursion(node){
+	jsonStr +='{"id":"'+node.id+'",';
+	if(node.checked){
+		jsonStr+='"checked":'+node.checked+',';
+	}
+	jsonStr += '"text":"'+node.text+'","flag":"'+node.flag+'",';
+	var child = getChildList(node.id);
+	if(hasChild(node)){
+		jsonStr +='"children":[';
+		for(var i = 0;i<child.length;i++){
+			var item = child[i];
+			item = recursion(child[i]);
+		}
+	}
+	if(jsonStr.charAt(jsonStr.length - 1) == ','){
+		jsonStr = jsonStr.substring(0,jsonStr.length-1);
+	}
+	jsonStr +=']},';
+}
+var treeData = getChildList("");
+var jsonStr = '[';
+for(var i = 0;i<treeData.length;i++){
+	treeData[i] = recursion(treeData[i]);
+}
+if(jsonStr.charAt(jsonStr.length - 1) == ','){
+	jsonStr = jsonStr.substring(0,jsonStr.length-1);
+}
+jsonStr += ']';
+var treedata = eval('('+jsonStr+')');
+$(function(){
+	$('#menuCatalogTree').tree({
+		data:treedata,
+		animate:true,
+		checkbox:true,
+		cascadeCheck:false,
+		onCheck:function(node,checked){
+			if(checked){
+				var sysUserId = $("#sysUserId").val();
+				var random = Math.floor(Math.random()*1000+1);
+				var loadurl= '${ctx}/security/staffpermission/searchMenuCatalogConstraint?menuCatalogId='+node.id+"&sysUserId="+sysUserId+"&random="+random;
+				$.getJSON(loadurl, function (data) {
+					var tr = $("<tr  id='"+node.id+"'></tr>");
+					var td1=$("<td style=\"TEXT-ALIGN: center; OVERFLOW: hidden\"></td>");
+					var div1=$("<div style=\"TEXT-ALIGN: center; WIDTH: 280px; TEXT-OVERFLOW: ellipsis; OVERFLOW: hidden\" name=\"menuName\"></div>");
+					var a1html="<a href='###' onclick=\"removerows("+node.id+")\">"+node.text+"</a>";
+					var a1 = $(a1html);
+					div1.append(a1);
+					td1.append(div1);
+					var td2=$("<td style=\"TEXT-ALIGN: center; OVERFLOW: hidden\"></td>");
+					var div2=$("<div style=\"TEXT-ALIGN: center; WIDTH: 550px; TEXT-OVERFLOW: ellipsis; OVERFLOW: hidden\" name=\"permissionHtml\">"+data[0].operations+"</div>");
+					td2.append(div2);
+					tr.append(td1);
+					tr.append(td2);
+					$("#flexTable").append(tr);
+				});
+			}else{
+				var rowId = $("#"+node.id);
+				rowId.remove();
+			}
+		}
+	});
+});
+//]]>
+</script>	
+<div class="easyui-layout" data-options="fit:true">
+	<div id="top" data-options="region:'north'" class="nav">
+			<table class="nav-table">
+			<tr>
+				  <td class="guide-first-unselected"></td>
+				  <td class="guide-unselected-step" id="step1">1<fmt:message key="credithc.sys.staff.permission.selectstaff" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+			      <td class="guide-unselected-step" id="step2">2<fmt:message key="credithc.sys.staff.permission.selectuser" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step3">3<fmt:message key="credithc.sys.rolepermission.role" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step4">4<fmt:message key="credithc.sys.staff.permission.menu.privilege" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step5">5<fmt:message key="credithc.sys.staff.permission.catalog.privilege" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-unselected"></td>
+				  <td class="guide-unselected-step" id="step6">6<fmt:message key="credithc.sys.staff.permission.menu.constraints" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-selected"></td>
+				  <td class="guide-selected-step" id="step7">7<fmt:message key="credithc.sys.staff.permission.catalog.constraints" bundle="${systemBundle}"></fmt:message></td>					
+				  <td class="guide-split-selected-unselected"></td>
+				  <td class="guide-unselected-step" id="step8">8<fmt:message key="credithc.sys.staff.permission.constraints.view" bundle="${systemBundle}"></fmt:message></td>
+			      <td class="guide-unselected-step"></td>
+			  </tr> 
+            </table>
+	   </div> 
+    <!-- 区域左侧树 -->
+    <div class="tree" data-options="region:'west',split:true">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'center'" title="<fmt:message key='credithc.sys.menu.catalog' bundle='${systemBundle}'></fmt:message>" fit="true" class="tree-center">
+                <ul id="menuCatalogTree" style=""></table>
+            </div>
+            <div data-options="region:'south'" class="tree-buttons"></div>
+        </div>
+    </div>
+    <!-- 中间区域 -->
+    <div data-options="region:'center'" class="no-border">
+        <div class="easyui-layout" data-options="fit:true">
+            <!-- 下部:显示列表-->
+            <div id="flexgrid" data-options="region:'center'" class="content" >
+                <form id="menucatalogConstraintForm" method="post">
+                	<table id="flexTable"></table>
+					<input type="hidden" name="sysUserId" id="sysUserId" value="${model.sysUserId }"/>
+					<input type="hidden" name="menuCatalogId" id="menuCatalogId"/>
+				</form>
+            </div>
+           
+            <div data-options="region:'south'" class="buttons">
+            	<input type="button" class="button" id="menuBackBtn" value="<fmt:message key='credithc.sys.button.up' bundle='${systemBundle}'></fmt:message>"/>
+				<input type="button" class="button" id="menucatalogConstraintBtn" value="<fmt:message key='credithc.sys.button.save' bundle='${systemBundle}'></fmt:message>"/>
+				<input type="button" class="button" id="menuNextBtn" value="<fmt:message key='credithc.sys.button.next' bundle='${systemBundle}'></fmt:message>"/>
+            </div>
+        </div>
+    </div>
+</div>  
+<script type="text/javascript">
+//<![CDATA[
+<%-- 右侧主面板区域 --%>
+	$("#flexTable").flexigrid({
+		title :'<fmt:message key="credithc.sys.staff.permission.catalog.constraints.operation" bundle="${systemBundle}"></fmt:message>',
+		dataType : 'json',
+		checkbox : false,
+		autoload : true,
+		usepager: false,
+		colModel : [ {
+			display : '<fmt:message key="credithc.sys.menuCatalog.name" bundle="${systemBundle}"></fmt:message>',
+			name : 'catalogName',
+			sortable : true,
+			align : 'center',
+			width:"280px"
+		},{
+			display : '<fmt:message key="credithc.sys.rolepermission.catalog.access" bundle="${systemBundle}"></fmt:message>',
+			name : 'peOrConstraintHtml',
+			sortable : true,
+			align : 'center',
+			width:"550px"
+		}]
+	});
+
+$("#menuBackBtn").click(function(){
+	var url='${ctx}/security/staffpermission/permission?sysUserId='+${model.sysUserId}+'&step=menuconstraint' ;
+	window.location.href=url;
+});
+$("#menuNextBtn").click(function(){
+	var url='${ctx}/security/staffpermission/permission?sysUserId='+${model.sysUserId}+'&step=staffview' ;
+	window.location.href=url;
+});
+function removerows(id){
+	 $("#"+id).remove();//得到父tr对象;   
+	 var node = $('#menuCatalogTree').tree('find',id);
+	 if(node){
+		 $('#menuCatalogTree').tree('uncheck',node.target);
+	 }
+}
+//表单提交
+$("#menucatalogConstraintBtn").click(function(){
+	$("#menucatalogConstraintForm").submit();
+});
+$('#menucatalogConstraintForm').ajaxForm({
+    url:"${ctx}/security/staffpermission/saveMenuCatalogConstraint",
+    beforeSubmit:function(formData, jqForm){
+        return jqForm.form('validate');
+    },
+	success:function(data){
+	  $.messager.show({title : '<fmt:message key="credithc.sys.show.info" bundle="${systemBundle}"></fmt:message>:',msg : data.message,timeout : 1000,showType : 'slide'});
+	}
+ });
+
+$("#step8").click(function(){
+	$("#menuNextBtn").click();
+});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

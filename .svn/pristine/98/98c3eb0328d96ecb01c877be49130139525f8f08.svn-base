@@ -1,0 +1,13 @@
+<%@ tag pageEncoding="UTF-8" %>
+<%@ tag import="com.credithc.csm.util.CacheManager" %>
+<%@ attribute name="tableName" type="java.lang.String" required="true" %>
+<%@ attribute name="columnName" type="java.lang.String" required="true" %>
+<%@ attribute name="value" type="java.lang.String" required="true" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%
+    CacheManager cacheManager = CacheManager.getInstance();
+    String label = (String) cacheManager.get("table.cache.idvalue.status", tableName + "." + columnName + "." + value);
+
+    request.setAttribute("label", label);
+%>
+${label}

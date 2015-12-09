@@ -1,0 +1,54 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/common/top.jsp"%>
+<fmt:setBundle basename="i18n.system-ui" var="systemBundle"/>
+<div class="easyui-layout" data-options="fit:true">
+	<form method="post" id="viewForm">
+	  <div class="info-form" data-options="region:'center'">
+		<fieldset>
+			<legend>登录日志</legend>
+			<ul class="info-group-two">
+					<li title="${model.loginLogId}">
+						<label>日志ID</label>
+						${model.loginLogId}
+					</td></tr>
+					<li title="${model.sysUserId} }">
+						<label>用户ID</label>
+						${model.sysUserId}
+					</td></tr>
+					<li title="${model.ipAddr}">
+						<label>IP地址</label>
+						${model.ipAddr}
+					</td></tr>
+					<li title="${model.macAddr}">
+						<label>MAC地址</label>
+						${model.macAddr}
+					</td></tr>
+					<li class="no-bottom-border" title="${model.loginTime}">
+						<label>登录时间</label>
+						${model.loginTime}
+					</td></tr>
+					<li class="no-bottom-border" title="${model.logoutTime}">
+						<label>注销时间</label>
+						${model.logoutTime}
+					</td></tr>
+			</table>
+		</fieldset>
+		</div>
+		 <div class="buttons" data-options="region:'south'">
+            <button class="button" id="closeSubmitBtn"><fmt:message key='credithc.sys.button.close' bundle='${systemBundle}'></fmt:message></button>
+        </div>
+	</form>
+</div>
+	   
+<script type="text/javascript">
+//<!CDATA[
+	$(function() {
+		//关闭页面
+		$("#closeSubmitBtn").click(function() {
+			 top.closeDialog();
+		});
+	});
+//]]>
+</script>
+<%@ include file="/WEB-INF/views/common/bottom.jsp"%>

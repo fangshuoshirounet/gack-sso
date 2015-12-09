@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.ShortcutMenuMapper">
+
+	<select id="queryListByPage" resultType="citic.gack.sso.entity.SysShortcutMenu" parameterType="citic.gack.sso.entity.SysShortcutMenu">
+        select SHORTCUT_MENU_ID,operator_id,creator_id, MENU_ID, SYS_USER_ID, STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_SHORTCUT_MENU where 1=1 AND  STS='A'
+
+        <if test="condition.operateDate!=null and condition.operateDate!='' ">
+             and  OPERATE_DATE like CONCAT(CONCAT('%', #{condition.operateDate}),'%')
+
+        </if>
+        <if test="condition.sts!=null and condition.sts!='' ">
+            and  STS like CONCAT(CONCAT('%',#{condition.sts}),'%')
+        </if>
+        <if test="condition.menuId!=null and condition.menuId!='' ">
+            and  MENU_ID like CONCAT(CONCAT('%',#{condition.menuId}),'%')
+        </if>
+        <if test="condition.shortcutMenuId!=null and condition.shortcutMenuId!='' ">
+            and  SHORTCUT_MENU_ID like CONCAT(CONCAT('%',#{condition.shortcutMenuId}),'%')
+        </if>
+        <if test="condition.createDate!=null and condition.createDate!='' ">
+            and  CREATE_DATE like CONCAT(CONCAT('%',#{condition.createDate}),'%')
+        </if>
+        <if test="condition.sysUserId!=null and condition.sysUserId!='' ">
+            and  SYS_USER_ID like CONCAT(CONCAT('%',#{condition.sysUserId}),'%')
+        </if>
+        <if test="page.sortName!=null">
+            order by ${page.sortName}
+        </if>
+        <if test="page.sortOrder!=null">
+            ${page.sortOrder}
+        </if>
+    </select>
+
+	
+	<select id="queryList" parameterType="citic.gack.sso.admin.dto.ShortcutMenuDTO" resultType="citic.gack.sso.admin.dto.ShortcutMenuDTO">
+        SELECT s.SHORTCUT_MENU_ID,s.operator_id,s.creator_id,s.MENU_ID,s.SYS_USER_ID,s.STS,date_format(s.OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(s.CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,s.operator,s.creator,m.menu_name,m.menu_url FROM SYS_SHORTCUT_MENU s inner join sys_menu m on s.menu_id = m.menu_id where m.sts='A' and s.sts='A' and s.sys_user_id=#{sysUserId}
+	</select>
+
+
+	<insert id="save" parameterType="citic.gack.sso.entity.SysShortcutMenu">
+      insert into SYS_SHORTCUT_MENU (SHORTCUT_MENU_ID,operator_id,creator_id, MENU_ID, SYS_USER_ID, STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR)
+      values
+      (
+        #{shortcutMenuId,jdbcType=VARCHAR},#{creatorId},#{creatorId},
+        #{menuId,jdbcType=VARCHAR},
+        #{sysUserId,jdbcType=VARCHAR},
+        #{sts,jdbcType=VARCHAR},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator}
+      )
+	</insert>
+
+	
+
+	<update id="updateById" parameterType="citic.gack.sso.entity.SysShortcutMenu">
+      update SYS_SHORTCUT_MENU set
+              MENU_ID=#{menuId},operator_id=#{operatorId} ,
+              SYS_USER_ID=#{sysUserId} ,
+              STS=#{sts} ,
+             OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+              where SHORTCUT_MENU_ID=#{shortcutMenuId}  and  VERSION=#{version}
+	</update>
+
+    <!---跟update一样-->
+	<delete id="deleteById" parameterType="citic.gack.sso.entity.SysShortcutMenu">
+        update SYS_SHORTCUT_MENU SET
+            STS='P',operator_id=#{operatorId},
+            OPERATE_DATE=str_to_date(#{operateDate},'%Y-%m-%d %H:%i:%s'),OPERATOR=#{operator},VERSION=VERSION+1
+        where SHORTCUT_MENU_ID=#{shortcutMenuId}
+	</delete>
+
+ 	
+	<select id="queryById" parameterType="citic.gack.sso.entity.SysShortcutMenu" resultType="citic.gack.sso.entity.SysShortcutMenu">
+        select SHORTCUT_MENU_ID,operator_id,creator_id,VERSION, MENU_ID, SYS_USER_ID, STS,date_format(OPERATE_DATE,'%Y-%m-%d %H:%i:%s') OPERATE_DATE ,date_format(CREATE_DATE,'%Y-%m-%d %H:%i:%s') CREATE_DATE  ,operator,creator from SYS_SHORTCUT_MENU where 1=1 and SHORTCUT_MENU_ID=#{shortcutMenuId}
+	</select>
+	 
+</mapper>

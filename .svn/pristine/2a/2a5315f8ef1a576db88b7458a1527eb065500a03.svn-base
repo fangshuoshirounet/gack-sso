@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="citic.gack.sso.mapper.ApplyOperatePermissionMapper">
+
+	<insert id="save" parameterType="citic.gack.sso.entity.SysApplyOperatePermission">
+
+		insert into
+		SYS_APPLY_OPERATE_PERMISSION
+		(ID,operator_id,creator_id,ROLE_ID,PERMISSION_ID,MENU_OPERATION_ID,CATALOG_OPERATE_TYPE,STS,CREATE_DATE,CREATOR,VERSION,OPERATE_DATE,OPERATOR,APPLY_ROLE_ID)
+		values
+		(#{id},#{creatorId},#{creatorId},#{roleId},#{permissionId},#{menuOperationId
+		,jdbcType=VARCHAR},#{catalogOperateType,jdbcType=VARCHAR},#{sts},str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator},1,str_to_date(#{createDate},'%Y-%m-%d %H:%i:%s'),#{creator}, #{applyRoleId})
+
+	</insert>
+
+	 	<select id="queryApplyRoleMenuPermission" resultType="citic.gack.sso.admin.dto.OperatePermissionDTO"
+		parameterType="java.lang.String">
+		
+		   select a.*,IFNULL(b.menu_id,'增加') as flag_type from (select a.menu_id, d.menu_name, d.menu_code, d.menu_url,a.operator_id,a.creator_id,
+		d.menu_catalog_id,
+		c.operation_id, e.operation_code,e.operation_name
+		from sus_apply_permission a, sys_pply_operate_permission b, sys_menu_operation c, sys_menu d,
+		sys_operation e
+		where a.permission_id = b.permission_id and
+		b.menu_operation_id =c.menu_operation_id
+		and c.menu_id = d.menu_id and
+		c.operation_id = e.operation_id
+		and a.sts = 'A' and b.sts = 'A' and
+		c.sts = 'A' and d.sts = 'A' and e.sts= 'A'
+		and a.APPLY_ROLE_ID = #{applyRoleId} ) as a LEFT JOIN
+
+
+   (select a.menu_id, d.menu_name, d.menu_code, d.menu_url,a.operator_id,a.creator_id,
+		d.menu_catalog_id,
+		c.operation_id, e.operation_code,e.operation_name
+		from sys_permission a, sys_operate_permission b, sys_menu_operation c, sys_menu d,
+		sys_operation e
+		where a.permission_id = b.permission_id and
+		b.menu_operation_id =c.menu_operation_id
+		and c.menu_id = d.menu_id and
+		c.operation_id = e.operation_id
+		and a.sts = 'A' and b.sts = 'A' and
+		c.sts = 'A' and d.sts = 'A' and e.sts= 'A'
+		and a.ROLE_ID = #{roleId} 
+ ) as b on a.menu_id= b.menu_id and a.operation_id= b.operation_id   
+union  
+   select a.*,IFNULL(b.menu_id,'减少') as flag_type from 
+  (select a.menu_id, d.menu_name, d.menu_code, d.menu_url,a.operator_id,a.creator_id,
+		d.menu_catalog_id,
+		c.operation_id, e.operation_code,e.operation_name
+		from sys_permission a, sys_operate_permission b, sys_menu_operation c, sys_menu d,
+		sys_operation e
+		where a.permission_id = b.permission_id and
+		b.menu_operation_id =c.menu_operation_id
+		and c.menu_id = d.menu_id and
+		c.operation_id = e.operation_id
+		and a.sts = 'A' and b.sts = 'A' and
+		c.sts = 'A' and d.sts = 'A' and e.sts= 'A'
+		and a.ROLE_ID = #{roleId}
+ ) as a  
+LEFT JOIN 
+   (select a.menu_id, d.menu_name, d.menu_code, d.menu_url,a.operator_id,a.creator_id,
+		d.menu_catalog_id,
+		c.operation_id, e.operation_code,e.operation_name
+		from sys_apply_permission a, sys_apply_operate_permission b, sys_menu_operation c, sys_menu d,
+		sys_operation e
+		where a.permission_id = b.permission_id and
+		b.menu_operation_id =c.menu_operation_id
+		and c.menu_id = d.menu_id and
+		c.operation_id = e.operation_id
+		and a.sts = 'A' and b.sts = 'A' and
+		c.sts = 'A' and d.sts = 'A' and e.sts= 'A'
+		and a.APPLY_ROLE_ID = #{applyRoleId}
+ ) as b on a.menu_id= b.menu_id and a.operation_id= b.operation_id   
+	</select>
+	  	<select id="queryApplyRoleOperatePermission" parameterType="java.lang.String"
+		resultType="citic.gack.sso.entity.SysOperatePermission">
+		select  ID OPERATE_PERMISSION_ID,ROLE_ID,PERMISSION_ID,MENU_OPERATION_ID,CATALOG_OPERATE_TYPE
+		 from SYS_APPLY_OPERATE_PERMISSION  
+		WHERE APPLY_ROLE_ID=#{applyRoleId} 
+	</select>
+
+</mapper>
